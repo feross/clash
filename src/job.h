@@ -21,6 +21,7 @@
 
 #include "command.h"
 #include "job-parser.h"
+#include "log.h"
 #include "pipeline.h"
 
 using namespace std;
@@ -80,4 +81,10 @@ class Job {
          * after the job string has been parsed.
          */
         vector<Pipeline> pipelines;
+
+        /**
+         * Set to true once the job string has been parsed. Prevents
+         * from happening multiple times.
+         */
+        bool has_parsed;
 };

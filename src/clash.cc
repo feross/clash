@@ -34,14 +34,13 @@ int main(int argc, char* argv[]) {
         }
 
         Job job(line);
-        debug("%s", job.ToString().c_str());
 
         try {
+            debug("%s", job.ToString().c_str());
             job.RunAndWait();
         } catch (exception& err) {
             printf("-clash: %s\n", err.what());
         }
-
 
         free(line);
     }

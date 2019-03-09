@@ -1,6 +1,6 @@
 #include "job.h"
 
-Job::Job(string job_str) : job_str(job_str) {}
+Job::Job(string job_str) : job_str(job_str), has_parsed(false) {}
 
 void Job::RunAndWait() {
     Parse();
@@ -20,6 +20,10 @@ string Job::ToString() {
 }
 
 void Job::Parse() {
+    if (has_parsed) {
+        return;
+    }
+
     ParsedJob parsed_job = job_parser.Parse(job_str);
 
     for (ParsedPipeline& parsed_pipeline : parsed_job.pipelines) {
@@ -34,4 +38,5 @@ void Job::Parse() {
         Pipeline pipeline(commands);
         pipelines.push_back(pipeline);
     }
+    has_parsed = true;
 }

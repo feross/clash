@@ -5,6 +5,7 @@
 
 #include "command.h"
 #include "file-util.h"
+#include "log.h"
 
 using namespace std;
 

@@ -1,6 +1,15 @@
 #include "pipeline.h"
 
 void Pipeline::Run() {
+    if (commands.size() == 0) {
+        return;
+    }
+
+    if (commands.size() == 1) {
+        commands[0].Run(0, 0);
+        return;
+    }
+
     int fds[2];
     FileUtil::CreatePipe(fds);
     int sink = fds[1];

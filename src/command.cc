@@ -1,13 +1,8 @@
 #include "command.h"
 
-// typedef function<void()> SetupCallback;
-
 void Command::Run(int source, int sink) {
-    debug("running");
     pid = FileUtil::CreateProcess();
     if (pid == 0) {
-        // child_setup_callback();
-
         // redirectInput(p.input);
         if (source != 0) {
             FileUtil::DuplicateDescriptor(source, STDIN_FILENO);

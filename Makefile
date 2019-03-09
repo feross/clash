@@ -21,6 +21,8 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 #   -std=c++17  use C++17 dialect
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -Wall -std=c++17
 
+LDFLAGS ?= -lreadline
+
 $(TARGET): $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(LOADLIBES) $(LDLIBS)
 

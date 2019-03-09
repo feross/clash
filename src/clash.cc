@@ -5,8 +5,16 @@ LogType LOG_LEVEL = INFO;
 int main(int argc, char* argv[]) {
     Arguments args(INTRO_TEXT);
     args.RegisterBool("help", "Print help message");
+    args.RegisterAlias("h", "help");
+
     args.RegisterBool("verbose", "Show debug logs");
+    args.RegisterAlias("v", "verbose");
+
     args.RegisterBool("quiet", "Hide all logs except errors");
+    args.RegisterAlias("q", "quiet");
+
+    args.RegisterString("command", "Run command");
+    args.RegisterAlias("c", "command");
 
     try {
         args.Parse(argc, argv);

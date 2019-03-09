@@ -1,6 +1,6 @@
 Feross Todo:
 
-- Why is test.py hanging?
+- Support -c flag
 - Support built-ins in Command
 - Command should take specific environment
 - If pipeline has one or more built-ins and one or more commands, just run the commands

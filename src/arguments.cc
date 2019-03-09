@@ -15,15 +15,34 @@ void Arguments::RegisterString(string name, string description) {
     descriptions[name] = description;
 }
 
+void Arguments::RegisterAlias(string alias, string name) {
+    alias_to_name[alias] = name;
+    name_to_alias[name] = alias;
+}
+
 void Arguments::Parse(int argc, char* argv[]) {
     vector<string> arguments(argv + 1, argv + argc);
     for (int i = 0; i < arguments.size(); i++) {
         string arg = arguments[i];
+        string name;
 
-        // Named arguments are prefixed with two dashes (e.g. --mybool)
-        string prefix("--");
-        if (arg.substr(0, 2) == prefix) {
-            string name = arg.substr(prefix.size());
+        // Named arguments are prefixed with two dashes (e.g. --help)
+        string named_prefix("--");
+        // Aliased arguments are prefixed with one dash (e.g. -h)
+        string alias_prefix("-");
+
+        if (arg.substr(0, named_prefix.size()) == named_prefix) {
+            name = arg.substr(named_prefix.size());
+        } else if (arg.substr(0, alias_prefix.size()) == alias_prefix) {
+            string alias = arg.substr(alias_prefix.size());
+            if (alias_to_name.count(alias)) {
+                name = alias_to_name[alias];
+            } else {
+                throw ArgumentsException("Unexpected argument alias" + arg);
+            }
+        }
+
+        if (!name.empty()) {
             if (bool_args.count(name)) {
                 bool_args[name] = true;
             } else if (int_args.count(name) || string_args.count(name)) {
@@ -97,7 +116,14 @@ string Arguments::get_help_text() {
             type = "string";
         }
 
-        result += "\n    --" + StringUtil::PadRight(name, max_name_len) + "  ";
+        string alias;
+        if (name_to_alias.count(name)) {
+            alias = "-" + name_to_alias[name] + ", ";
+        }
+
+        result += "\n    ";
+        result += StringUtil::PadRight(alias, 1);
+        result += "--" + StringUtil::PadRight(name, max_name_len) + "  ";
         result += StringUtil::PadRight(description, max_description_len);
         result += " [" + type + "]";
     }

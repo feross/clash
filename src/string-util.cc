@@ -33,7 +33,7 @@ string StringUtil::PadLeft(string const& str, size_t size) {
 
 void StringUtil::Trim(std::string &str) {
     TrimLeft(str);
-    TrimLeft(str);
+    TrimRight(str);
 }
 
 void StringUtil::TrimLeft(string &str) {

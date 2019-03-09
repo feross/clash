@@ -18,8 +18,7 @@ void Command::Run(int source, int sink) {
             if (sink != 0) {
                 FileUtil::CloseDescriptor(sink);
             }
-            sink = FileUtil::OpenFile(outputFile, O_WRONLY | O_CREAT | O_TRUNC,
-                kDefaultPermissions);
+            sink = FileUtil::OpenFile(outputFile, O_WRONLY | O_CREAT | O_TRUNC);
         }
 
         if (sink != 0) {

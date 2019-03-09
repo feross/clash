@@ -30,10 +30,11 @@ void FileUtil::DuplicateDescriptor(int new_fd, int old_fd) {
     }
 }
 
-int FileUtil::OpenFile(string& filePath, int flags) {
-    int fd = open(filePath.c_str(), flags | O_CLOEXEC);
-    if (fdin == -1) {
-        throw FileException("Could not open \"" + input + "\"");
+int FileUtil::OpenFile(string& filePath, int flags, mode_t mode) {
+
+    int fd = open(filePath.c_str(), flags | O_CLOEXEC, mode);
+    if (fd == -1) {
+        throw FileException("Could not open \"" + filePath + "\"");
     }
     return fd;
 }

@@ -1,8 +1,5 @@
 #include "arguments.h"
 
-#include <sstream>
-#include <iomanip>
-
 void Arguments::RegisterBool(string name, string description) {
     bool_args[name] = false;
     descriptions[name] = description;
@@ -100,8 +97,8 @@ string Arguments::get_help_text() {
             type = "string";
         }
 
-        result += "\n    --" + Util::PadRight(name, max_name_len) + "  ";
-        result += Util::PadRight(description, max_description_len);
+        result += "\n    --" + StringUtil::PadRight(name, max_name_len) + "  ";
+        result += StringUtil::PadRight(description, max_description_len);
         result += " [" + type + "]";
     }
     return result;

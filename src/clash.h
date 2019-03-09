@@ -1,5 +1,16 @@
-#include <string>
+/**
+ * The entry point into the Clash program.
+ */
 
+#pragma once
+
+#include <string>
+#include <stdio.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+
+#include "arguments.h"
+#include "job.h"
 #include "log.h"
 
 using namespace std;
@@ -22,8 +33,8 @@ Examples:
         ./clash
 
     Read and execute commands from a file.
-    	./clash shell-script.sh
+        ./clash shell-script.sh
 
     Read and excute commands from a string.
-    	./clash -c "echo hello world"
+        ./clash -c "echo hello world"
 )";

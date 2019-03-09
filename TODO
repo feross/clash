@@ -4,3 +4,4 @@ Command Todo:
 - Support built-ins in Command
 - If pipeline has one or more built-ins and one or more commands, just run the commands
 - Command should take specific environment
+- Error in one command should not cause the entire pipeline or job to abort early

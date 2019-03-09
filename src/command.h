@@ -10,6 +10,12 @@
 
 using namespace std;
 
+/**
+ * Permission flags to enable user+group+global read, and user write. In other
+ * words, these are the flags that would get set with "chmod 644".
+ */
+static const mode_t kDefaultPermissions = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
 class Command {
     public:
         Command(vector<string> words, string inputFile, string outputFile) :

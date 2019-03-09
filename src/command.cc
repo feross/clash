@@ -48,5 +48,11 @@ string Command::ToString() {
     for (string& word : words) {
         result += " " + word;
     }
+    if (!inputFile.empty()) {
+        result += " [inputFile: " + inputFile + "]";
+    }
+    if (!outputFile.empty()) {
+        result += " [outputFile: " + outputFile + "]";
+    }
     return result;
 }

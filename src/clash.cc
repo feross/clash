@@ -34,6 +34,20 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
+    if (!args.get_string("command").empty()) {
+        vector<string> lines = StringUtil::Split(args.get_string("command"), "\n");
+        for (string& line : lines) {
+            Job job(line);
+            try {
+                debug("%s", job.ToString().c_str());
+                job.RunAndWait();
+            } catch (exception& err) {
+                printf("-clash: %s\n", err.what());
+            }
+        }
+        return EXIT_SUCCESS;
+    }
+
     vector<string> unnamed_args = args.get_unnamed();
     // Shell script mode
     if (unnamed_args.size() > 0) {
@@ -47,8 +61,8 @@ int main(int argc, char* argv[]) {
         while (getline(script_file, line)) {
             Job job(line);
             try {
-                job.RunAndWait();
                 debug("%s", job.ToString().c_str());
+                job.RunAndWait();
             } catch (exception& err) {
                 printf("-clash: %s\n", err.what());
             }
@@ -70,8 +84,8 @@ int main(int argc, char* argv[]) {
 
         Job job(line);
         try {
-            job.RunAndWait();
             debug("%s", job.ToString().c_str());
+            job.RunAndWait();
         } catch (exception& err) {
             printf("-clash: %s\n", err.what());
         }

@@ -32,7 +32,7 @@ ParsedJob JobParser::Parse(string& job_str) {
                 for (int i = 1; i < split_command.size(); i++) {
                     int start_pos = split_command[i].find_first_not_of(' ');
                     int end_pos = split_command[i].find_first_of(' ', start_pos);
-                    command.outputFile = split_command[i].substr(start_pos, end_pos);
+                    command.inputFile = split_command[i].substr(start_pos, end_pos);
                     if (end_pos < split_command[i].size()) {
                         command_str.push_back(' ');
                         command_str.append(split_command[i].substr(end_pos));

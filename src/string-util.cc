@@ -1,6 +1,6 @@
 #include "string-util.h"
 
-const vector<string> StringUtil::Split(const string &str, const string &delim) {
+vector<string> StringUtil::Split(const string &str, const string &delim) {
     vector<string> result;
 
     size_t pos = 0;

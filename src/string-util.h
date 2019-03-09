@@ -31,8 +31,7 @@ class StringUtil {
          * @param delim The delimiter to search for
          * @return Vector of result strings
          */
-        static const vector<string> Split(const string &str,
-            const string &delim);
+        static vector<string> Split(const string &str, const string &delim);
 
         /**
          * Add space to the right of the given string str so that it is at least

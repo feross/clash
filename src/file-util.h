@@ -14,12 +14,6 @@
 
 using namespace std;
 
-/**
- * Permission flags to enable user+group+global read, and user write. In other
- * words, these are the flags that would get set with "chmod 644".
- */
-static const mode_t kDefaultPermissions = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-
 class FileException : public exception {
     public:
         FileException(const string& message): message(message) {}
@@ -34,7 +28,19 @@ class FileUtil {
         static void CreatePipe(int fds[2]);
         static void CloseDescriptor(int fd);
         static void DuplicateDescriptor(int new_fd, int old_fd);
-        static int OpenFile(string& filePath, int flags, mode_t mode = kDefaultPermissions);
+
+        /**
+         * TODO
+         *
+         * Permission flags to enable user+group+global read, and user write.
+         * In other words, these are the flags that would get set with
+         * "chmod 644".
+         */
+        static int OpenFile(string& filePath, int flags = O_RDONLY,
+            mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+
+        // static string ReadFile(string& filePath);
+
 
         // TODO: this does not belong here
         static pid_t CreateProcess();

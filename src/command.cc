@@ -7,7 +7,7 @@ void Command::Run(int source, int sink) {
             if (source != 0) {
                 FileUtil::CloseDescriptor(source);
             }
-            source = FileUtil::OpenFile(inputFile, O_RDONLY);
+            source = FileUtil::OpenFile(inputFile);
         }
 
         if (source != 0) {

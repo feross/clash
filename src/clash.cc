@@ -26,6 +26,33 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
+    vector<string> unnamed_args = args.get_unnamed();
+    // Shell script mode
+    if (unnamed_args.size() > 0) {
+        string script_name = unnamed_args[0];
+
+        string line;
+        ifstream script_file(script_name);
+        if (!script_file.is_open()) {
+            printf("-clash: error while opening file");
+        }
+        while (getline(script_file, line)) {
+            Job job(line);
+            try {
+                job.RunAndWait();
+                debug("%s", job.ToString().c_str());
+            } catch (exception& err) {
+                printf("-clash: %s\n", err.what());
+            }
+        }
+        if (script_file.bad()) {
+            printf("-clash: error while reading file");
+        }
+
+        return EXIT_SUCCESS;
+    }
+
+    // Interactive mode
     char * line;
     while (true) {
         line = readline("% ");
@@ -34,7 +61,6 @@ int main(int argc, char* argv[]) {
         }
 
         Job job(line);
-
         try {
             job.RunAndWait();
             debug("%s", job.ToString().c_str());

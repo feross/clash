@@ -1,6 +1,5 @@
 Feross Todo:
 
-- Error in one command should not cause the entire pipeline or job to abort early
 - Why is test.py hanging?
 - Support built-ins in Command
 - Command should take specific environment

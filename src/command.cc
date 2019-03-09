@@ -18,7 +18,7 @@ void Command::Run(int source, int sink) {
         argv[words.size()] = NULL;
 
         execvp(argv[0], argv);
-        printf("-clash: %s: command not found\n", argv[0]);
+        fprintf(stderr, "-clash: %s: command not found\n", argv[0]);
         exit(0);
         return;
     }

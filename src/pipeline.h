@@ -12,8 +12,7 @@ using namespace std;
 class Pipeline {
     public:
         Pipeline(vector<Command> commands) : commands(commands) {}
-        void Run();
-        void Wait();
+        void RunAndWait();
         string ToString();
     private:
         vector<Command> commands;

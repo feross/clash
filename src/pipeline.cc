@@ -1,12 +1,13 @@
 #include "pipeline.h"
 
-void Pipeline::Run() {
+void Pipeline::RunAndWait() {
     if (commands.size() == 0) {
         return;
     }
 
     if (commands.size() == 1) {
         commands[0].Run(0, 0);
+        commands[0].Wait();
         return;
     }
 
@@ -32,9 +33,7 @@ void Pipeline::Run() {
     source = fds[0];
     commands[commands.size() - 1].Run(source, 0);
     FileUtil::CloseDescriptor(source);
-}
 
-void Pipeline::Wait() {
     for (Command& command : commands) {
         command.Wait();
     }

@@ -36,8 +36,8 @@ int main(int argc, char* argv[]) {
         Job job(line);
 
         try {
-            debug("%s", job.ToString().c_str());
             job.RunAndWait();
+            debug("%s", job.ToString().c_str());
         } catch (exception& err) {
             printf("-clash: %s\n", err.what());
         }

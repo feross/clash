@@ -1,0 +1,6 @@
+Command Todo:
+
+- File redirection
+- Support built-ins in Command
+- If pipeline has one or more built-ins and one or more commands, just run the commands
+- Command should take specific environment

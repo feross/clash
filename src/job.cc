@@ -5,8 +5,7 @@ Job::Job(string job_str) : job_str(job_str), has_parsed(false) {}
 void Job::RunAndWait() {
     Parse();
     for (Pipeline& pipeline : pipelines) {
-        pipeline.Run();
-        pipeline.Wait();
+        pipeline.RunAndWait();
     }
 }
 
@@ -38,5 +37,6 @@ void Job::Parse() {
         Pipeline pipeline(commands);
         pipelines.push_back(pipeline);
     }
+
     has_parsed = true;
 }

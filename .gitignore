@@ -1,6 +1,10 @@
 # Built files
 clash
 
+# Test runner files
+__stdout
+__test/
+
 # Prerequisites
 *.d
 

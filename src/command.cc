@@ -3,10 +3,24 @@
 void Command::Run(int source, int sink) {
     pid = FileUtil::CreateProcess();
     if (pid == 0) {
-        // redirectInput(p.input);
+        if (!inputFile.empty()) {
+            if (source != 0) {
+                FileUtil::CloseDescriptor(source);
+            }
+            source = FileUtil::OpenFile(inputFile, O_RDONLY);
+        }
+
         if (source != 0) {
             FileUtil::DuplicateDescriptor(source, STDIN_FILENO);
         }
+
+        if (!outputFile.empty()) {
+            if (sink != 0) {
+                FileUtil::CloseDescriptor(sink);
+            }
+            sink = FileUtil::OpenFile(outputFile, O_WRONLY | O_CREAT | O_TRUNC);
+        }
+
         if (sink != 0) {
             FileUtil::DuplicateDescriptor(sink, STDOUT_FILENO);
         }

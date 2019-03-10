@@ -35,18 +35,18 @@ ParsedJob JobParser::Parse(string& job_str) {
     bool next_word_redirects_in = false;
     while((match_index = strcspn(job_str_copy.c_str(), " \t\n;|<>$'`\"\\")) != job_str_copy.size()) {
         char matched = job_str_copy[match_index];
-        printf("strcspn loc str:%s, char:%c\n", job_str_copy.c_str() + match_index, matched);
-        printf("partial_word: %s\n", partial_word.c_str());
+        debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
+        debug("partial_word: %s", partial_word.c_str());
         if (match_index != 0) partial_word.append(job_str_copy.substr(0,match_index));
-        printf("partial_word: %s\n", partial_word.c_str());
+        debug("partial_word: %s", partial_word.c_str());
         job_str_copy = job_str_copy.substr(match_index + 1);
-        printf("new job_str_copy:%s\n", job_str_copy.c_str());
+        debug("new job_str_copy:%s", job_str_copy.c_str());
         switch(matched) {
 
             case '\t':
             case ' ':
             case '\n': {
-                printf("whitespace, prevstuf:%s\n", partial_word.c_str());
+                debug("whitespace, prevstuf:%s", partial_word.c_str());
                 if (partial_word.size() > 0) {
                     if (next_word_redirects_in) {
                         command.input_file = partial_word;
@@ -123,14 +123,14 @@ ParsedJob JobParser::Parse(string& job_str) {
                 partial_word.append(SwitchParsingTarget(matched, job_str_copy));
             }
         }
-        printf("reloop\n");
+        debug("%s", "reloop");
     }
     //end of file, parse one last thing
     char matched = job_str[match_index];
-    printf("end strcspn loc:%s %c\n", job_str_copy.c_str() + match_index, matched);
-    printf("end partial_word: %s\n", partial_word.c_str());
+    debug("end strcspn loc:%s %c", job_str_copy.c_str() + match_index, matched);
+    debug("end partial_word: %s", partial_word.c_str());
     if (match_index != 0) partial_word.append(job_str_copy.substr(0,match_index));
-    printf("end partial_word: %s\n", partial_word.c_str());
+    debug("end partial_word: %s", partial_word.c_str());
     if (partial_word.size() > 0) {
         if (next_word_redirects_in) {
             command.input_file = partial_word;
@@ -158,7 +158,7 @@ ParsedJob JobParser::Parse(string& job_str) {
         vector<string> command_strs = StringUtil::Split(pipeline_str, "|"); //TODO: fix, maybe escaped ('\")
         for (string& command_str : command_strs) {
             ParsedCommand command;
-            // printf("%s\n", command_str.c_str());
+            // debug("%s", command_str.c_str());
 
             vector<string> split_command = StringUtil::Split(command_str, ">"); //TODO: fix, maybe escaped ('\")
             command_str = split_command[0];
@@ -233,7 +233,7 @@ string JobParser::ParseDoubleQuote(string& job_str_copy) {
     int match_index;
     while((match_index = strcspn(job_str_copy.c_str(), "\"`$\\")) != job_str_copy.size()) {
         char matched = job_str_copy[match_index];
-        printf("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
+        debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
         quoted.append(job_str_copy.substr(0,match_index));
         job_str_copy = job_str_copy.substr(match_index + 1);
         if (matched == '\"') {
@@ -252,7 +252,7 @@ string JobParser::ParseDoubleQuote(string& job_str_copy) {
 string JobParser::ParseSingleQuote(string& job_str_copy) {
     // const char *loc = strpbrk(message, "\'");
     int match_index = strcspn(job_str_copy.c_str(), "\'");
-    printf("strcspn loc str:%s, char:\'", job_str_copy.c_str() + match_index);
+    debug("strcspn loc str:%s, char:\'", job_str_copy.c_str() + match_index);
     string quoted = job_str_copy.substr(0,match_index);
     job_str_copy = job_str_copy.substr(match_index + 1);
     return quoted;
@@ -293,9 +293,9 @@ string JobParser::ParseBackslash(string& job_str_copy, char mode) {
 }
 
 string JobParser::ParseVariable(string& job_str_copy) { //TODO: push at front & reparse (may introduce words)
-    printf("string:%s\n", job_str_copy.c_str());
+    debug("string:%s", job_str_copy.c_str());
     job_str_copy = job_str_copy.substr(1);
-    printf("string:%s\n", job_str_copy.c_str());    
+    debug("string:%s", job_str_copy.c_str());
 return string(job_str_copy);
 }
 
@@ -304,7 +304,7 @@ string JobParser::ParseBacktick(string& job_str_copy) { //TODO: push at front & 
     int match_index;
     while((match_index = strcspn(job_str_copy.c_str(), "`\\")) != job_str_copy.size()) {
         char matched = job_str_copy[match_index];
-        printf("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
+        debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
         quoted.append(job_str_copy.substr(0,match_index));
         job_str_copy = job_str_copy.substr(match_index + 1);
         if (matched == '`') {

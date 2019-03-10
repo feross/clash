@@ -28,15 +28,15 @@ struct ParsedJob {
       complete = true; //TODO: false in future
     };
     void print() {
-      printf("job:\n");
+      debug("%s", "job:");
       for (ParsedPipeline& pipeline : pipelines) {
-              printf("  pipeline:\n");
+              debug("%s", "  pipeline:");
           for (ParsedCommand& command : pipeline.commands) {
-              printf("    command:\n");
-              printf("      input_file:%s\n", command.input_file.c_str());
-              printf("      output_file:%s\n", command.output_file.c_str());
+              debug("%s", "    command:");
+              debug("      input_file:%s", command.input_file.c_str());
+              debug("      output_file:%s", command.output_file.c_str());
               for (string& command_str : command.words) {
-                  printf("      word: %s\n", command_str.c_str());
+                  debug("      word: %s", command_str.c_str());
               }
           }
       }

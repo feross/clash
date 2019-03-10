@@ -6,6 +6,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <string.h>
 #include <string>
 #include <sys/stat.h>
@@ -44,5 +45,6 @@ class FileUtil {
 
         // TODO: this does not belong here
         static pid_t CreateProcess();
-
+        static void SetCurrentWorkingDirectory(const string& new_cwd);
+        static string GetCurrentWorkingDirectory();
 };

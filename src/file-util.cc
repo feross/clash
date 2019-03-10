@@ -46,3 +46,18 @@ pid_t FileUtil::CreateProcess() {
     }
     return pid;
 }
+
+void FileUtil::SetCurrentWorkingDirectory(const string& new_cwd) {
+    if (chdir(new_cwd.c_str()) == -1) {
+        throw FileException("Unable to set current working directory " +
+            new_cwd);
+    }
+}
+
+string FileUtil::GetCurrentWorkingDirectory() {
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        throw FileException("Unable to get current working directory");
+    }
+    return string(cwd);
+}

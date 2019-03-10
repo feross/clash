@@ -31,6 +31,7 @@ class StringUtil {
          * @return Vector of result strings
          */
         static vector<string> Split(const string &str, const string &delim);
+        static vector<string> Split(const char * str, const string &delim);
 
         /**
          * Return a new string with space to the right of the given string str

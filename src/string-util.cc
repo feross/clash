@@ -15,6 +15,12 @@ vector<string> StringUtil::Split(const string &str, const string &delim) {
     return result;
 }
 
+vector<string> StringUtil::Split(const char * str, const string &delim) {
+    string s(str);
+    return Split(s, delim);
+}
+
+
 string StringUtil::PadRight(string const& str, size_t size) {
     if (str.size() < size) {
         return str + string(size - str.size(), ' ');

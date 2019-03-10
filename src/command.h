@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <vector>
 
+#include "environment.h"
+#include "job-parser.h"
 #include "file-util.h"
 #include "log.h"
 
@@ -12,14 +14,14 @@ using namespace std;
 
 class Command {
     public:
-        Command(vector<string> words, string inputFile, string outputFile) :
-            inputFile(inputFile), outputFile(outputFile), words(words), pid(0) {}
+        Command(ParsedCommand parsed_command, Environment& env);
         void Run(int source, int sink);
         void Wait();
         string ToString();
-        string inputFile;
-        string outputFile;
     private:
         vector<string> words;
+        string input_file;
+        string output_file;
         pid_t pid;
+        Environment& env;
 };

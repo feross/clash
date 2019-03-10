@@ -166,7 +166,7 @@ ParsedJob JobParser::Parse(string& job_str) {
                 for (int i = 1; i < split_command.size(); i++) {
                     int start_pos = split_command[i].find_first_not_of(' ');
                     int end_pos = split_command[i].find_first_of(' ', start_pos);
-                    command.outputFile = split_command[i].substr(start_pos, end_pos);
+                    command.output_file = split_command[i].substr(start_pos, end_pos);
                     if (end_pos < split_command[i].size()) {
                         command_str.push_back(' ');
                         command_str.append(split_command[i].substr(end_pos));
@@ -180,7 +180,7 @@ ParsedJob JobParser::Parse(string& job_str) {
                 for (int i = 1; i < split_command.size(); i++) {
                     int start_pos = split_command[i].find_first_not_of(' ');
                     int end_pos = split_command[i].find_first_of(' ', start_pos);
-                    command.outputFile = split_command[i].substr(start_pos, end_pos);
+                    command.input_file = split_command[i].substr(start_pos, end_pos);
                     if (end_pos < split_command[i].size()) {
                         command_str.push_back(' ');
                         command_str.append(split_command[i].substr(end_pos));
@@ -325,7 +325,6 @@ string JobParser::ParseBacktick(string& job_str_copy) { //TODO: push at front & 
 
 // return string(job_str_copy);
 }
-
 
 
 

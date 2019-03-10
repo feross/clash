@@ -5,13 +5,12 @@
 #pragma once
 
 #include <string>
-#include <stdio.h>
-#include <readline/readline.h>
-#include <readline/history.h>
+#include <vector>
 
 #include "arguments.h"
 #include "job.h"
 #include "log.h"
+#include "shell.h"
 
 using namespace std;
 

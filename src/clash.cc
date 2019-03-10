@@ -5,8 +5,16 @@ LogType LOG_LEVEL = INFO;
 int main(int argc, char* argv[]) {
     Arguments args(INTRO_TEXT);
     args.RegisterBool("help", "Print help message");
+    args.RegisterAlias("h", "help");
+
     args.RegisterBool("verbose", "Show debug logs");
+    args.RegisterAlias("v", "verbose");
+
     args.RegisterBool("quiet", "Hide all logs except errors");
+    args.RegisterAlias("q", "quiet");
+
+    args.RegisterString("command", "Run command");
+    args.RegisterAlias("c", "command");
 
     try {
         args.Parse(argc, argv);
@@ -26,24 +34,21 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
-    char * line;
-    while (true) {
-        line = readline("% ");
-        if (line == NULL) {
-            break;
-        }
+    Shell shell;
 
-        Job job(line);
-
-        try {
-            job.RunAndWait();
-            debug("%s", job.ToString().c_str());
-        } catch (exception& err) {
-            printf("-clash: %s\n", err.what());
-        }
-
-        free(line);
+    const string& command = args.get_string("command");
+    if (!command.empty()) {
+        shell.RunJobAndWait(command);
+        return EXIT_SUCCESS;
     }
 
+    vector<string> unnamed_args = args.get_unnamed();
+    if (unnamed_args.size() > 0) {
+        const string& file_path = unnamed_args[0];
+        shell.RunFileAndWait(file_path);
+        return EXIT_SUCCESS;
+    }
+
+    shell.StartRepl();
     return EXIT_SUCCESS;
 }

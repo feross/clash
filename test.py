@@ -14,7 +14,7 @@ import unittest
 # The location of the shell to be tested. You can change this to
 # /bin/bash to see if Bash passes this test suite.
 shell = "./clash"
-# shell = "/bin/bash"
+#shell = "/bin/bash"
 
 # This variable will hold the exit status of the most recent command
 # executed by "run"
@@ -102,52 +102,42 @@ class TestBuiltin(unittest.TestCase):
             shutil.rmtree("__test")
 
     def test_cd_no_args(self):
-        print("\ncd_no_args")
         self.assertEqual(run("cd ~; pwd"), run("cd; pwd"))
 
     def test_cd_no_HOME(self):
-        print("\ncd_no_HOME")
         self.assertIn("cd: HOME not set", run("unset HOME; cd"))
 
     def test_cd_HOME_bad_path(self):
-        print("\ncd_HOME_bad_path")
         self.assertIn("__bogus/foo: No such file or directory",
                 run("HOME=__bogus/foo; cd"))
 
     def test_cd_too_many_args(self):
-        print("\ncd_too_many_args")
         self.assertIn("cd: Too many arguments", run("cd a b"))
 
     def test_cd_bad_path(self):
-        print("\ncd_bad_path")
         self.assertIn("__bogus/foo: No such file or directory",
                 run("cd __bogus/foo"))
 
     def test_cd_success(self):
-        print("\ncd_success")
         os.makedirs("__test")
         writeFile("__test/foo", "abc def");
         self.assertEqual("abc def",
                 run("cd __test; /bin/cat foo"))
 
     def test_exit_no_args(self):
-        print("\nexit_no_args")
         self.assertEqual("", run("exit; echo foo"))
         self.assertEqual(0, status)
 
     def test_exit_with_arg(self):
-        print("\nexit_with_arg")
         self.assertEqual("", run("exit 14; echo foo"))
         self.assertEqual(14, status)
 
     def test_exit_non_numeric_arg(self):
-        print("\nexit_non_numeric_arg")
         self.assertIn("jkl: Numeric argument required",
                 run("exit jkl; echo foo"))
         self.assertEqual(2, status)
 
     def test_exit_too_many_arguments(self):
-        print("\nexit_too_many_arguments")
         self.assertIn("exit: Too many arguments", run("exit 1 2 3; echo foo"))
         self.assertEqual(1, status)
 
@@ -157,23 +147,19 @@ class TestExpand(unittest.TestCase):
             shutil.rmtree("__test")
 
     def test_expandPath_no_wildcards(self):
-        print("\nexpandPath_no_wildcards")
         os.makedirs("__test/foo")
         self.assertEqual("abc def\n", run("/bin/echo abc def"))
         self.assertEqual("__test/[a]*\n", run('/bin/echo __test/"[a]*"'))
 
     def test_expandPath_file_matched(self):
-        print("\nexpandPath_file_matched")
         os.makedirs("__test/foo")
         self.assertEqual("__test/foo\n", run('/bin/echo __test/[f]*'))
 
     def test_expandPath_no_file_matched(self):
-        print("\nexpandPath_no_file_matched")
         os.makedirs("__test/foo");
         self.assertEqual("__test/x*\n", run('/bin/echo __test/x*'))
 
     def test_expandPath_multiple_files_matched(self):
-        print("\nexpandPath_multiple_files_matched")
         os.makedirs("__test/foo")
         writeFile("__test/foo/a.c")
         writeFile("__test/foo/b.c")
@@ -183,7 +169,6 @@ class TestExpand(unittest.TestCase):
         self.assertIn("__test/foo/b.c", result)
 
     def test_expandTilde(self):
-        print("\nexpandTilde")
         self.assertEqual("/home/ouster\n",
                 run("PATH=/home/ouster; /bin/echo ~\n"))
         self.assertEqual("/home/ouster/xyz\n", run("/bin/echo ~/xyz\n"))
@@ -192,23 +177,19 @@ class TestExpand(unittest.TestCase):
         self.assertEqual("~__bogus__/xyz\n", run("/bin/echo ~__bogus__/xyz\n"))
 
     def test_matchFiles_bad_directory(self):
-        print("\nmatchFiles_bad_directory")
         self.assertEqual("__test/bogus/*\n", run('/bin/echo __test/bogus/*'))
 
     def test_matchFiles_no_match_in_directory(self):
-        print("\nmatchFiles_no_match_in_directory")
         os.makedirs("__test")
         self.assertEqual("__test/*.c\n", run('/bin/echo __test/*.c'))
 
     def test_matchFiles_repeated_separators(self):
-        print("\nmatchFiles_repeated_separators")
         os.makedirs("__test/foo/bar")
         self.assertEqual("__test/foo\n", run('/bin/echo __t*//foo'))
         self.assertEqual("__test/foo/bar\n", run('/bin/echo __t*//f*//bar'))
         self.assertEqual("__test//foo/bar\n", run('/bin/echo __test//f*//bar'))
 
     def test_matchFiles_multiple_levels_of_matching(self):
-        print("\nmatchFiles_multiple_levels_of_matching")
         os.makedirs("__test/x1")
         os.makedirs("__test/x2")
         writeFile("__test/x1/a.c")
@@ -220,20 +201,17 @@ class TestExpand(unittest.TestCase):
         self.assertIn("__test/x2/c.c", result)
 
     def test_matchString_fail_end_of_string(self):
-        print("\nmatchString_fail_end_of_string")
         os.makedirs("__test")
         writeFile("__test/xyz")
         self.assertEqual("__tes?/xyzq\n", run('/bin/echo __tes?/xyzq'))
 
     def test_matchString_question_mark(self):
-        print("\nmatchString_question_mark")
         os.makedirs("__test")
         writeFile("__test/xyz")
         self.assertEqual("__test/xyz\n", run('/bin/echo __tes?/x?z'))
         self.assertEqual("__tes?/x?z\n", run('/bin/echo __tes?/x\?z'))
 
     def test_matchString_asterisk(self):
-        print("\nmatchString_asterisk")
         os.makedirs("__test")
         writeFile("__test/xyz")
         self.assertEqual("__test/xyz\n", run('/bin/echo __tes?/*z'))
@@ -243,7 +221,6 @@ class TestExpand(unittest.TestCase):
         self.assertEqual("__tes?/x*z\n", run('/bin/echo __tes?/x\*z'))
 
     def test_matchString_brackets(self):
-        print("\nmatchString_brackets")
         os.makedirs("__test")
         writeFile("__test/xyz")
         self.assertEqual("__test/xyz\n", run('/bin/echo __tes?/x[ayql]z'))
@@ -251,19 +228,16 @@ class TestExpand(unittest.TestCase):
         self.assertEqual("__tes?/x[y]z\n", run('/bin/echo __tes?/x\[y]z'))
 
     def test_matchString_character_mismatch(self):
-        print("\nmatchString_character_mismatch")
         os.makedirs("__test")
         writeFile("__test/xyz")
         self.assertEqual("__tes?/xa*\n", run('/bin/echo __tes?/xa*'))
 
     def test_matchString_pattern_ends_before_string(self):
-        print("\nmatchString_pattern_ends_before_string")
         os.makedirs("__test")
         writeFile("__test/xyz")
         self.assertEqual("__tes?/xy\n", run('/bin/echo __tes?/xy'))
 
     def test_matchBrackets(self):
-        print("\nmatchBrackets")
         os.makedirs("__test")
         writeFile("__test/testFile")
         writeFile("__test/te[st")
@@ -290,7 +264,6 @@ class TestMain(unittest.TestCase):
             shutil.rmtree("__test")
 
     def test_loadArgs(self):
-        print("\nloadArgs")
         os.makedirs("__test");
         writeFile("__test/script", "/bin/echo $0 $1 $2 '|' $# '|' $*")
         self.assertEqual("__test/script a b | 3 | a b c\n",
@@ -299,41 +272,34 @@ class TestMain(unittest.TestCase):
                 run("/bin/echo $# '|' $0 $1 '|' $*"))
 
     def test_main_c_option_basics(self):
-        print("\nmain_c_option_basics")
         self.assertEqual("foo bar\n", runWithArgs("-c", "/bin/echo foo bar"))
 
     def test_main_c_option_missing_arg(self):
-        print("\nmain_c_option_missing_arg")
         self.assertIn("option requires an argument", runWithArgs("-c"))
         self.assertEqual(2, status)
 
     def test_main_c_option_exit_code(self):
-        print("\nmain_c_option_exit_code")
         self.assertEqual("", runWithArgs("-c", "exit 44"))
         self.assertEqual(44, status)
 
     def test_main_script_file_basics(self):
-        print("\nmain_script_file_basics")
         os.makedirs("__test");
         writeFile("__test/script", "/bin/echo 'foo\nbar'\n/bin/echo second command")
         self.assertEqual("foo\nbar\nsecond command\n",
                 runWithArgs("__test/script"))
 
     def test_main_script_file_nonexistent_file(self):
-        print("\nmain_script_file_nonexistent_file")
         self.assertIn("_bogus_/xyzzy: No such file or directory\n",
                 runWithArgs("_bogus_/xyzzy"))
         self.assertEqual(127, status)
 
     def test_main_script_file_exit_status(self):
-        print("\nmain_script_file_exit_status")
         os.makedirs("__test");
         writeFile("__test/script", "/bin/echo command output\nexit 32\n    \n")
         self.assertEqual("command output\n", runWithArgs("__test/script"))
         self.assertEqual(32, status)
 
     def test_main_script_file_command_line_args(self):
-        print("\nmain_script_file_command_line_args")
         os.makedirs("__test");
         writeFile("__test/script", "/bin/echo $# '|' $0 $1 '|' $*\n")
         self.assertEqual("4 | __test/script a b | a b c d e\n",
@@ -346,23 +312,19 @@ class TestParser(unittest.TestCase):
             shutil.rmtree("__test")
 
     def test_eval_basics(self):
-        print("\neval_basics")
         self.assertEqual("foo abc $y\n", run("x=foo; /bin/echo $x abc '$y'"))
 
     def test_eval_input_file_subs(self):
-        print("\neval_input_file_subs")
         os.makedirs("__test")
         writeFile("__test/foo", "abcde");
         self.assertEqual("abcde", run("x=foo; /bin/cat <__test/$x"))
 
     def test_eval_output_file_subs(self):
-        print("\neval_output_file_subs")
         os.makedirs("__test")
         self.assertEqual("", run("x=foo; /bin/echo foo bar >__test/$x"))
         self.assertEqual("foo bar\n", readFile("__test/foo"))
 
     def test_eval_errors(self):
-        print("\neval_errors")
         self.assertIn("unexpected EOF while looking for matching `''",
                 run("/bin/echo 'a b c"))
         self.assertIn("${}: bad substitution", run("/bin/echo a b ${}"))
@@ -371,14 +333,12 @@ class TestParser(unittest.TestCase):
         self.assertIn("start\n", output)
 
     def test_doSubs_tildes_first(self):
-        print("\ndoSubs_tildes_first")
         home = run("/bin/echo ~")[:-1]
         self.assertNotIn("~", home)
         self.assertEqual("%s ~ ~ ~ ~\n"% (home),
                 run("x='~ ~'; /bin/echo ~ $x \"~\" '~'"))
 
     def test_doSubs_variables(self):
-        print("\ndoSubs_variables")
         self.assertEqual("Word 1: foo\nWord 2: a\n"
                 + "Word 3: b\nWord 4: a b\n",
                 run("x=foo; y='a b'; ./words.py $x $y \"$y\""))
@@ -390,30 +350,25 @@ class TestParser(unittest.TestCase):
                 run("x=' a b '; ./words.py .$x."))
 
     def test_doSubs_commands(self):
-        print("\ndoSubs_commands")
         self.assertEqual("abc\n", run("x=abc; /bin/echo `/bin/echo $x`"))
         self.assertEqual("$abc\n", run("x='$abc'; /bin/echo `/bin/echo $x`"))
 
     def test_doSubs_backslashes(self):
-        print("\ndoSubs_backslashes")
         self.assertEqual("$x \"$x\n", run("x=abc; /bin/echo \$x \"\\\"\\$x\""))
 
     def test_doSubs_double_quotes(self):
-        print("\ndoSubs_double_quotes")
         self.assertEqual("Word 1: a x y z b\n",
                 run('./words.py "a `/bin/echo x y z` b"'))
         self.assertEqual("Word 1: \nWord 2: \nWord 3: \n",
                 run("x=\"\"; ./words.py $x\"\" \"\" \"$x\""))
 
     def test_doSubs_single_quotes(self):
-        print("\ndoSubs_single_quotes")
         self.assertEqual("Word 1: a $x `echo foo`\n",
                 run("x=abc; ./words.py 'a $x `echo foo`'"))
         self.assertEqual("Word 1: \nWord 2: \nWord 3: \n",
                 run("x=''; ./words.py $x'' ''$x ''"))
 
     def test_doSubs_path_expansion(self):
-        print("\ndoSubs_path_expansion")
         os.makedirs("__test")
         writeFile("__test/a.c")
         writeFile("__test/b.c")
@@ -427,16 +382,13 @@ class TestParser(unittest.TestCase):
                 run("x='*.c'; /bin/echo \"__test/*.c\""))
 
     def test_parse_leading_separators(self):
-        print("\nparse_leading_separators")
         self.assertEqual("a b c\n", run("/bin/echo a   b   c  "))
 
     def test_parse_single_quotes(self):
-        print("\nparse_single_quotes")
         self.assertEqual("Word 1: xyz \\\nWord 2: abc\n",
                 run("./words.py 'xyz \\' abc"))
 
     def test_parse_double_quotes(self):
-        print("\nparse_double_quotes")
         self.assertEqual("Word 1: a b c\n",
                 run("./words.py \"a b c\""))
         self.assertEqual("Word 1: a b\n",
@@ -448,7 +400,6 @@ class TestParser(unittest.TestCase):
         self.assertEqual("\"\n", run("/bin/echo '\"'"))
 
     def test_parse_variables(self):
-        print("\nparse_variables")
         self.assertEqual("abcyyy\n", run("xxx=abc; /bin/echo ${xxx}yyy"))
         self.assertIn("unexpected EOF while looking for `}'",
                 run("/bin/echo ${xxx"))
@@ -462,7 +413,6 @@ class TestParser(unittest.TestCase):
                 runWithArgs("-c", "echo $12xy", "arg0", "arg1", "arg2"))
 
     def test_parse_commands_basics(self):
-        print("\nparse_commands_basics")
         self.assertEqual("Word 1: $y\n",
                 run("x='$y'; y=abc; /bin/echo `./words.py $x`"))
         self.assertEqual("Word 1: a b c Word 2: x y\n",
@@ -470,17 +420,14 @@ class TestParser(unittest.TestCase):
         self.assertEqual("`\n", run("/bin/echo '`'"))
 
     def test_parse_commands_no_word_breaks(self):
-        print("\nparse_commands_no_word_breaks")
         self.assertEqual("Word 1: a b c\n",
                 run("./words.py \"`/bin/echo a b c`\""))
 
     def test_parse_commands_errors(self):
-        print("\nparse_commands_errors")
         self.assertIn("Unexpected EOF while looking for matching ``'",
                 run("/bin/echo `foo bar"))
 
     def test_parse_backslashes(self):
-        print("\nparse_backslashes")
         self.assertEqual("aa$x`echo foo`\n",
                 run("x=99; /bin/echo a\\a\\$x\\`echo foo\\`"))
         self.assertIn("Unexpected EOF while parsing backslash",
@@ -490,16 +437,13 @@ class TestParser(unittest.TestCase):
         self.assertEqual("Word 1: axyz\n", run("./words.py a\\\nxyz"))
 
     def test_parse_backslashes_in_quotes(self):
-        print("\nparse_backslashes_in_quotes")
         self.assertEqual("a$x`b\"c\\d\ne\\a\n",
                 run("x=99; /bin/echo \"a\\$x\\`b\\\"c\\\\d\\\ne\\a\""))
 
     def test_parse_backslashes_meaningless(self):
-        print("\nparse_backslashes_meaningless")
         self.assertEqual("a\\b\n", run("/bin/echo 'a\\b'"))
 
     def test_split_basics(self):
-        print("\nsplit_basics")
         os.makedirs("__test")
         self.assertEqual("abc def\n", run("/bin/echo abc def"))
         self.assertEqual("", run("/bin/echo abc def > __test/foo"))
@@ -509,25 +453,21 @@ class TestParser(unittest.TestCase):
         self.assertEqual("abc def\n", run("/bin/cat<__test/foo"))
 
     def test_split_empty_first_word(self):
-        print("\nsplit_empty_first_word")
         os.makedirs("__test")
         self.assertEqual("", run("> __test/foo /bin/echo abc"))
         self.assertEqual("abc\n", readFile("__test/foo"))
 
     def test_split_missing_input_file(self):
-        print("\nsplit_missing_input_file")
         os.makedirs("__test")
         self.assertEqual("-clash: no file given for input redirection\n",
                 run("/bin/echo abc < >__test/foo"))
 
     def test_split_missing_output_file(self):
-        print("\nsplit_missing_output_file")
         os.makedirs("__test")
         self.assertEqual("-clash: no file given for output redirection\n",
                 run("/bin/echo abc >;"))
 
     def test_split_pipeline(self):
-        print("\nsplit_pipeline")
         os.makedirs("__test")
         self.assertEqual("abc def\n", run("/bin/echo abc def | /bin/cat"))
         self.assertEqual("abc def\n", run("/bin/echo abc def|/bin/cat"))
@@ -535,7 +475,6 @@ class TestParser(unittest.TestCase):
                 run("/bin/echo abc def | /bin/cat -n | /bin/cat -n"))
 
     def test_split_multiple_pipelines(self):
-        print("\nsplit_multiple_pipelines")
         os.makedirs("__test")
         self.assertEqual("xyz\n",
                 run("/bin/echo abc>__test/out1;/bin/echo def > __test/out2;"
@@ -549,7 +488,6 @@ class TestParser(unittest.TestCase):
         self.assertEqual("def\n", readFile("__test/out2"))
 
     def test_breakAndAppend(self):
-        print("\nbreakAndAppend")
         self.assertEqual("Word 1: .abc\nWord 2: def\nWord 3: x\nWord 4: y.\n",
                 run("x='abc def\tx\ny'; ./words.py .$x."))
         self.assertEqual("Word 1: .\nWord 2: a\nWord 3: b\nWord 4: .\n",
@@ -563,7 +501,6 @@ class TestPipeline(unittest.TestCase):
             shutil.rmtree("__test")
 
     def test_rebuildPathMap_basics(self):
-        print("\nrebuildPathMap_basics")
         os.makedirs("__test")
         os.makedirs("__test/child")
         writeFile("__test/a", "#!/bin/sh\n/bin/echo __test/a")
@@ -577,51 +514,42 @@ class TestPipeline(unittest.TestCase):
                 run("PATH=\"`/bin/pwd`/__test/child:`/bin/pwd`/__test\"; a; b"))
 
     def test_rebuildPathMap_default(self):
-        print("\nrebuildPathMap_default")
         self.assertEqual("a b\n", run("unset PATH; echo a b"))
 
     def test_run_redirection_basics(self):
-        print("\nrun_redirection_basics")
         os.makedirs("__test")
         self.assertEqual("a b c\n",
                 run("/bin/echo a b c > __test/foo; /bin/cat __test/foo"))
         self.assertEqual("a b c\n", run("/bin/cat < __test/foo"))
 
     def test_run_ambiguous_input_redirection(self):
-        print("\nrun_ambiguous_input_redirection")
         self.assertIn("Ambiguous input redirection",
                 run("x='a b'; /bin/cat <$x"))
 
     def test_run_bad_input_file(self):
-        print("\nrun_bad_input_file")
         os.makedirs("__test")
         self.assertIn("No such file or directory",
                 run("cat < __test/bogus"))
 
     def test_run_ambiguous_output_redirection(self):
-        print("\nrun_ambiguous_output_redirection")
         self.assertIn("Ambiguous output redirection",
                 run("x='a b'; /bin/echo foo bar >$x"))
 
     def test_run_pipeline(self):
-        print("\nrun_pipeline")
         self.assertIn("x y z\n", run("/bin/echo x y z | cat"))
 
     def test_run_bad_output_file(self):
-        print("\nrun_bad_output_file")
         os.makedirs("__test")
         self.assertIn("No such file or directory",
                 run("/bin/echo abc > __test/_bogus/xyz"))
 
     def test_run_rebuild_path_cache_to_discover_new_file(self):
-        print("\nrun_rebuild_path_cache_to_discover_new_file")
         os.makedirs("__test")
         writeFile("__test/x", "#!/bin/sh\n/bin/echo __test/x")
         self.assertIn(" x: command not found\n__test/x",
                 run("PATH=\"/bin:`pwd`/__test\"; x; chmod +x __test/x; x"))
 
     def test_run_rebuild_path_cache_path_changed(self):
-        print("\nrun_rebuild_path_cache_path_changed")
         os.makedirs("__test")
         writeFile("__test/x", "#!/bin/sh\n/bin/echo __test/x")
         os.chmod("__test/x", 0o777)
@@ -629,7 +557,6 @@ class TestPipeline(unittest.TestCase):
                 run("x; PATH=\"/bin:`pwd`/__test\"; x"))
 
     def test_run_no_such_executable(self):
-        print("\nrun_no_such_executable")
         os.makedirs("__test")
         self.assertIn("No such file or directory", run("__test/bogus foo bar"))
         self.assertIn("No such file or directory",
@@ -642,30 +569,25 @@ class TestPipeline(unittest.TestCase):
                 readFile("__test/out"))
 
     def test_run_set_status_variable(self):
-        print("\nrun_set_status_variable")
         os.makedirs("__test")
         self.assertEqual("0\n", run("/bin/true; /bin/echo $?"))
         self.assertEqual("44\n", run("/bin/bash -c \"exit 44\"; /bin/echo $?"))
 
 class TestVariables(unittest.TestCase):
     def test_set(self):
-        print("\nset")
         self.assertEqual("50 100\n", run("x=99; y=100; x=50; /bin/echo $x $y"))
         self.assertIn("x=100",
                 run("x=99; export x; /bin/echo foo; x=100; /usr/bin/printenv"))
 
     def test_setFromEnviron(self):
-        print("\nsetFromEnviron")
         self.assertNotEqual("\n", run("/bin/echo $HOME"))
         self.assertNotEqual("\n", run("/bin/echo $SHELL"))
         self.assertIn("SHELL=xyzzy", run("SHELL=xyzzy; /usr/bin/printenv"))
 
     def test_set(self):
-        print("\nset")
         self.assertEqual(".99. ..\n", run("x=99; /bin/echo .$x. .$y."))
 
     def test_getEnviron(self):
-        print("\ngetEnviron")
         result = run("x=99; export x; y=100; /usr/bin/printenv")
         self.assertIn("x=99", result)
         self.assertNotIn("y=", result)
@@ -673,7 +595,6 @@ class TestVariables(unittest.TestCase):
         self.assertIn("SHELL=", result)
 
     def test_unset(self):
-        print("\nunset")
         self.assertEqual("~99~\n~~\n",
                 run("x=99; /bin/echo ~$x~; unset x; /bin/echo ~$x~"))
         result = run("x=99; export x; echo x:$x; unset x; /usr/bin/printenv")
@@ -681,7 +602,6 @@ class TestVariables(unittest.TestCase):
         self.assertNotIn("x=99", result);
 
     def test_markExported(self):
-        print("\nmarkExported")
         self.assertNotIn("x=99", run("x=99; /usr/bin/printenv"))
         self.assertIn("x=99", run("x=99; /bin/echo foo bar; export x; "
                 "/usr/bin/printenv"))

@@ -89,6 +89,11 @@ class Arguments {
         void RegisterString(string name, string description);
 
         /**
+         * TODO
+         */
+        void RegisterAlias(string alias, string name);
+
+        /**
          * Parse the user-provided command line argument string, usually
          * obtained directly from the arguments to main().
          *
@@ -178,6 +183,12 @@ class Arguments {
         map<string, bool> bool_args;
         map<string, int> int_args;
         map<string, string> string_args;
+
+        /**
+         * TODO
+         */
+        map<string, string> alias_to_name;
+        map<string, string> name_to_alias;
 
         /**
          * Vector of the unnamed "extra" arguments included in the command line

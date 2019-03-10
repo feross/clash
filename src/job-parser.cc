@@ -120,7 +120,7 @@ ParsedJob JobParser::Parse(string& job_str) {
                 continue;
             }
             default : {
-                SwitchParsingTarget(matched, job_str_copy);
+                partial_word.append(SwitchParsingTarget(matched, job_str_copy));
             }
         }
         printf("reloop\n");

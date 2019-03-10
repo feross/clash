@@ -6,8 +6,8 @@ using namespace std;
 
 struct ParsedCommand {
     vector<string> words;
-    string inputFile;
-    string outputFile;
+    string input_file;
+    string output_file;
 };
 
 struct ParsedPipeline {

@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "command.h"
+#include "environment.h"
 #include "job-parser.h"
 #include "log.h"
 #include "pipeline.h"
@@ -37,8 +38,9 @@ class Job {
          * @param job_str The line (or lines) of text entered on the terminal
          *                by the user.
          */
-        Job(string job_str);
-        Job(char * job_str) : Job(string(job_str)) {}
+        Job(string job_str, Environment& env);
+        Job(char * job_str, Environment& env) :
+            Job(string(job_str), env) {}
 
         /**
          * Run the job, including all pipelines and commands contained within.
@@ -87,4 +89,6 @@ class Job {
          * from happening multiple times.
          */
         bool has_parsed;
+
+        Environment& env;
 };

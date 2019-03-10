@@ -1,10 +1,10 @@
 #include "shell.h"
 
-void Shell::RunJobAndWait(const string& job_string) {
+void Shell::RunJobAndWait(const string& job_str) {
     // TODO: splitting on newlines should be handled by the parser
-    vector<string> lines = StringUtil::Split(job_string, "\n");
+    vector<string> lines = StringUtil::Split(job_str, "\n");
     for (string& line : lines) {
-        Job job(line);
+        Job job(line, env);
         try {
             debug("%s", job.ToString().c_str());
             job.RunAndWait();
@@ -14,13 +14,13 @@ void Shell::RunJobAndWait(const string& job_string) {
     }
 }
 
-void Shell::RunJobAndWait(const char * job_string) {
-    const string job_string_str = job_string;
-    RunJobAndWait(job_string_str);
+void Shell::RunJobAndWait(const char * job_str) {
+    const string job_string = job_str;
+    RunJobAndWait(job_string);
 }
 
 void Shell::RunFileAndWait(const string& file_path) {
-    string job_string;
+    string job_str;
     ifstream file(file_path);
     if (!file.is_open()) {
         printf("-clash: error while opening file %s", file_path.c_str());
@@ -29,7 +29,7 @@ void Shell::RunFileAndWait(const string& file_path) {
 
     string line;
     while (getline(file, line)) {
-        job_string += line + "\n";
+        job_str += line + "\n";
     }
 
     if (file.bad()) {
@@ -37,7 +37,7 @@ void Shell::RunFileAndWait(const string& file_path) {
         return;
     }
 
-    RunJobAndWait(job_string);
+    RunJobAndWait(job_str);
 }
 
 void Shell::StartRepl() {

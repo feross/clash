@@ -1,6 +1,7 @@
 #include "job.h"
 
-Job::Job(string job_str) : job_str(job_str), has_parsed(false) {}
+Job::Job(string job_str, Environment& env) :
+    job_str(job_str), has_parsed(false), env(env) {}
 
 void Job::RunAndWait() {
     Parse();
@@ -29,8 +30,7 @@ void Job::Parse() {
         vector<Command> commands;
 
         for (ParsedCommand& parsed_command : parsed_pipeline.commands) {
-            Command command(parsed_command.words, parsed_command.inputFile,
-                parsed_command.outputFile);
+            Command command(parsed_command, env);
             commands.push_back(command);
         }
 

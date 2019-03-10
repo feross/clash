@@ -20,6 +20,9 @@ class Command {
         void Wait();
         string ToString();
     private:
+        bool RunBuiltin();
+        void RunProgram(int source, int sink);
+
         vector<string> words;
         string input_file;
         string output_file;

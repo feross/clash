@@ -5,15 +5,12 @@ extern char **environ;
 Environment::Environment() {
     // Inherit environment variables from parent process
     int i = 0;
-    char * var = environ[i];
-    while (var != NULL) {
+    for (char * var = environ[i]; var != NULL; i += 1, var = environ[i]) {
         vector<string> split = StringUtil::Split(var, "=");
         string name = split[0];
         string value = split[1];
-        variables[name] = value;
-
-        i += 1;
-        var = environ[i];
+        set_variable(name, value);
+        export_variable(name);
     }
 
     // Ensure PATH always has a reasonable default
@@ -21,13 +18,9 @@ Environment::Environment() {
         variables["PATH"] = DEFAULT_PATH_VAR;
     }
 
-    // current_working_directory = FileUtil::GetCurrentWorkingDirectory();
+    // getpwnam
 
-    // debug("Current working directory: %s", current_working_directory.c_str());
-    // debug("%s", "Default environment: ");
-    // for (auto const& [name, value] : variables) {
-    //     debug("%s=%s", name.c_str(), value.c_str());
-    // }
+    // current_working_directory = FileUtil::GetCurrentWorkingDirectory();
 }
 
 const string& Environment::get_variable(const string& name) {
@@ -42,13 +35,32 @@ const string& Environment::get_variable(const string& name) {
 
 void Environment::set_variable(const string& name, const string& value) {
     variables[name] = value;
-    debug("set variable '%s' to '%s'", name.c_str(), value.c_str());
+    // debug("set variable '%s' to '%s'", name.c_str(), value.c_str());
 }
 
 void Environment::unset_variable(const string& name) {
     variables.erase(name);
+    export_variables.erase(name);
     debug("unset variable '%s'", name.c_str());
 }
+
+void Environment::export_variable(const string& name) {
+    if (variables.count(name)) {
+        export_variables.insert(name);
+    }
+}
+
+vector<string> Environment::get_export_variable_strings() {
+    vector<string> export_variable_strings;
+    for (const string& name : export_variables) {
+        export_variable_strings.push_back(name + "=" + get_variable(name));
+    }
+    return export_variable_strings;
+}
+
+// const set<string>& get_export_variables() {
+//     return export_variables;
+// }
 
 // string Environment::get_current_working_directory() {
 //     return current_working_directory;

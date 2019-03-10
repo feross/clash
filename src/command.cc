@@ -9,6 +9,32 @@ Command::Command(ParsedCommand parsed_command, Environment& env) :
 }
 
 void Command::Run(int source, int sink) {
+    bool isBuiltin = RunBuiltin();
+    if (!isBuiltin) {
+        RunProgram(source, sink);
+    }
+}
+
+void Command::Wait() {
+    // TODO: check for error
+    waitpid(pid, NULL, 0);
+}
+
+string Command::ToString() {
+    string result = "Command:";
+    for (string& word : words) {
+        result += " " + word;
+    }
+    if (!input_file.empty()) {
+        result += " [input_file: " + input_file + "]";
+    }
+    if (!output_file.empty()) {
+        result += " [output_file: " + output_file + "]";
+    }
+    return result;
+}
+
+bool Command::RunBuiltin() {
     string& program = words[0];
 
     if (program == "cd") {
@@ -20,7 +46,7 @@ void Command::Run(int source, int sink) {
         } else {
             printf("cd: too many arguments\n");
         }
-        return;
+        return true;
     }
 
     if (program == "pwd") {
@@ -29,7 +55,7 @@ void Command::Run(int source, int sink) {
         } else {
             printf("pwd: too many arguments\n");
         }
-        return;
+        return true;
     }
 
     if (program == "exit") {
@@ -48,14 +74,56 @@ void Command::Run(int source, int sink) {
         } else {
             printf("exit: too many arguments");
         }
-        return;
+        return true;
+    }
+
+    if (program == "printenv") {
+        vector<string> variable_strings = env.get_export_variable_strings();
+        for (string& variable_string : variable_strings) {
+            printf("%s\n", variable_string.c_str());
+        }
+        return true;
+    }
+
+    if (program == "set") {
+        if (words.size() == 3) {
+            env.set_variable(words[1], words[2]);
+        } else if (words.size() < 3) {
+            printf("set: not enough arguments");
+        } else {
+            printf("set: too many arguments");
+        }
+        return true;
     }
 
     if (program == "unset") {
-        // if (words)
-        // env.unset_variable();
+        if (words.size() == 1) {
+            printf("unset: not enough arguments\n");
+        } else {
+            vector<string> names(words.begin() + 1, words.end());
+            for (string& name : names) {
+                env.unset_variable(name);
+            }
+        }
+        return true;
     }
 
+    if (program == "export") {
+        if (words.size() == 1) {
+            printf("export: not enough arguments\n");
+        } else {
+            vector<string> names(words.begin() + 1, words.end());
+            for (string& name : names) {
+                env.export_variable(name);
+            }
+        }
+        return true;
+    }
+
+    return false;
+}
+
+void Command::RunProgram(int source, int sink) {
     pid = FileUtil::CreateProcess();
     if (pid == 0) {
         if (!input_file.empty()) {
@@ -86,29 +154,20 @@ void Command::Run(int source, int sink) {
         }
         argv[words.size()] = NULL;
 
+        vector<string> variable_strings = env.get_export_variable_strings();
+        char * envp[variable_strings.size() + 1];
+        for (size_t i = 0; i < variable_strings.size(); i++) {
+            envp[i] = const_cast<char *>(variable_strings[i].c_str());
+        }
+        argv[variable_strings.size()] = NULL;
+
+        // TODO: update based on answer to Piazza question:
+        // https://piazza.com/class/jn53jliwaz842
+        // execve(argv[0], argv, envp);
         execvp(argv[0], argv);
+
         fprintf(stderr, "-clash: %s: command not found\n", argv[0]);
         exit(0);
         return;
     }
 }
-
-void Command::Wait() {
-    // TODO: check for error
-    waitpid(pid, NULL, 0);
-}
-
-string Command::ToString() {
-    string result = "Command:";
-    for (string& word : words) {
-        result += " " + word;
-    }
-    if (!input_file.empty()) {
-        result += " [input_file: " + input_file + "]";
-    }
-    if (!output_file.empty()) {
-        result += " [output_file: " + output_file + "]";
-    }
-    return result;
-}
-

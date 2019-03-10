@@ -31,20 +31,24 @@ string StringUtil::PadLeft(string const& str, size_t size) {
     }
 }
 
-void StringUtil::Trim(std::string &str) {
-    TrimLeft(str);
-    TrimRight(str);
+string StringUtil::Trim(std::string &str) {
+    string s = TrimRight(str);
+    s = TrimLeft(s);
+    return s;
 }
 
-void StringUtil::TrimLeft(string &str) {
-    str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](int ch) {
-        return !std::isspace(ch);
+string StringUtil::TrimLeft(string &str) {
+    string s = str;
+    s.erase(s.begin(), find_if(s.begin(), s.end(), [](int ch) {
+        return !isspace(ch);
     }));
+    return s;
 }
 
-void StringUtil::TrimRight(string &str) {
-    str.erase(std::find_if(str.rbegin(), str.rend(), [](int ch) {
-        return !std::isspace(ch);
-    }).base(), str.end());
+string StringUtil::TrimRight(string &str) {
+    string s = str;
+    s.erase(find_if(s.rbegin(), s.rend(), [](int ch) {
+        return !isspace(ch);
+    }).base(), s.end());
+    return s;
 }
-

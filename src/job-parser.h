@@ -6,12 +6,12 @@ using namespace std;
 
 struct ParsedCommand {
     vector<string> words;
-    string inputFile;
-    string outputFile;
+    string input_file;
+    string output_file;
       void clear() {
         words.clear();
-        inputFile.clear();
-        outputFile.clear();
+        input_file.clear();
+        output_file.clear();
       };
 };
 
@@ -33,6 +33,8 @@ struct ParsedJob {
               printf("  pipeline:\n");
           for (ParsedCommand& command : pipeline.commands) {
               printf("    command:\n");
+              printf("      input_file:%s\n", command.input_file.c_str());
+              printf("      output_file:%s\n", command.output_file.c_str());
               for (string& command_str : command.words) {
                   printf("      word: %s\n", command_str.c_str());
               }

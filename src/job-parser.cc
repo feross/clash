@@ -49,10 +49,10 @@ ParsedJob JobParser::Parse(string& job_str) {
                 printf("whitespace, prevstuf:%s\n", partial_word.c_str());
                 if (partial_word.size() > 0) {
                     if (next_word_redirects_in) {
-                        command.inputFile = partial_word;
+                        command.input_file = partial_word;
                         next_word_redirects_in = false;
                     } else if (next_word_redirects_out) {
-                        command.outputFile = partial_word;
+                        command.output_file = partial_word;
                         next_word_redirects_out = false;
                     } else command.words.push_back(partial_word);
                     partial_word = string();
@@ -62,10 +62,10 @@ ParsedJob JobParser::Parse(string& job_str) {
             case ';': {
                 if (partial_word.size() > 0) {
                     if (next_word_redirects_in) {
-                        command.inputFile = partial_word;
+                        command.input_file = partial_word;
                         next_word_redirects_in = false;
                     } else if (next_word_redirects_out) {
-                        command.outputFile = partial_word;
+                        command.output_file = partial_word;
                         next_word_redirects_out = false;
                     } else command.words.push_back(partial_word);
                     partial_word = string();
@@ -79,10 +79,10 @@ ParsedJob JobParser::Parse(string& job_str) {
             case '|': {
                 if (partial_word.size() > 0) {
                     if (next_word_redirects_in) {
-                        command.inputFile = partial_word;
+                        command.input_file = partial_word;
                         next_word_redirects_in = false;
                     } else if (next_word_redirects_out) {
-                        command.outputFile = partial_word;
+                        command.output_file = partial_word;
                         next_word_redirects_out = false;
                     } else command.words.push_back(partial_word);
                     partial_word = string();
@@ -94,10 +94,10 @@ ParsedJob JobParser::Parse(string& job_str) {
             case '<': {
                 if (partial_word.size() > 0) {
                     if (next_word_redirects_in) {
-                        command.inputFile = partial_word;
+                        command.input_file = partial_word;
                         next_word_redirects_in = false;
                     } else if (next_word_redirects_out) {
-                        command.outputFile = partial_word;
+                        command.output_file = partial_word;
                         next_word_redirects_out = false;
                     } else command.words.push_back(partial_word);
                     partial_word = string();
@@ -108,10 +108,10 @@ ParsedJob JobParser::Parse(string& job_str) {
             case '>': {
                 if (partial_word.size() > 0) {
                     if (next_word_redirects_in) {
-                        command.inputFile = partial_word;
+                        command.input_file = partial_word;
                         next_word_redirects_in = false;
                     } else if (next_word_redirects_out) {
-                        command.outputFile = partial_word;
+                        command.output_file = partial_word;
                         next_word_redirects_out = false;
                     } else command.words.push_back(partial_word);
                     partial_word = string();
@@ -133,10 +133,10 @@ ParsedJob JobParser::Parse(string& job_str) {
     printf("end partial_word: %s\n", partial_word.c_str());
     if (partial_word.size() > 0) {
         if (next_word_redirects_in) {
-            command.inputFile = partial_word;
+            command.input_file = partial_word;
             next_word_redirects_in = false;
         } else if (next_word_redirects_out) {
-            command.outputFile = partial_word;
+            command.output_file = partial_word;
             next_word_redirects_out = false;
         } else command.words.push_back(partial_word);
         partial_word = string();

@@ -3,44 +3,59 @@
 extern char **environ;
 
 Environment::Environment() {
+    // Inherit environment variables from parent process
     int i = 0;
     char * var = environ[i];
     while (var != NULL) {
         vector<string> split = StringUtil::Split(var, "=");
         string name = split[0];
         string value = split[1];
-        vars[name] = value;
+        variables[name] = value;
 
         i += 1;
         var = environ[i];
     }
 
-    if (!vars.count("PATH")) {
-        vars["PATH"] = DEFAULT_PATH_VAR;
+    // Ensure PATH always has a reasonable default
+    if (!variables.count("PATH")) {
+        variables["PATH"] = DEFAULT_PATH_VAR;
     }
 
-    debug("%s", "Default environment: ");
-    for (auto const& [name, value] : vars) {
-        debug("%s=%s", name.c_str(), value.c_str());
-    }
+    // current_working_directory = FileUtil::GetCurrentWorkingDirectory();
+
+    // debug("Current working directory: %s", current_working_directory.c_str());
+    // debug("%s", "Default environment: ");
+    // for (auto const& [name, value] : variables) {
+    //     debug("%s=%s", name.c_str(), value.c_str());
+    // }
 }
 
-string Environment::get_var(string& name) {
-    if (vars.count(name)) {
-        return vars[name];
+const string& Environment::get_variable(const string& name) {
+    static const string default_value = "";
+
+    if (variables.count(name)) {
+        return variables[name];
     } else {
-        return "";
+        return default_value;
     }
 }
 
-void Environment::set_var(string& name, string& value) {
-    vars[name] = value;
+void Environment::set_variable(const string& name, const string& value) {
+    variables[name] = value;
+    debug("set variable '%s' to '%s'", name.c_str(), value.c_str());
 }
 
-string Environment::get_cwd() {
-    return cwd;
+void Environment::unset_variable(const string& name) {
+    variables.erase(name);
+    debug("unset variable '%s'", name.c_str());
 }
 
-void Environment::set_cwd(string& new_cwd) {
-    cwd = new_cwd;
-}
+// string Environment::get_current_working_directory() {
+//     return current_working_directory;
+// }
+
+// void Environment::set_current_working_directory(string& new_cwd) {
+//     FileUtil::SetCurrentWorkingDirectory(new_cwd);
+//     current_working_directory = FileUtil::GetCurrentWorkingDirectory();
+//     debug("set cwd to '%s'", current_working_directory.c_str());
+// }

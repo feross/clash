@@ -9,6 +9,53 @@ Command::Command(ParsedCommand parsed_command, Environment& env) :
 }
 
 void Command::Run(int source, int sink) {
+    string& program = words[0];
+
+    if (program == "cd") {
+        if (words.size() == 1) {
+            const string& home_directory = env.get_variable("HOME");
+            FileUtil::SetCurrentWorkingDirectory(home_directory);
+        } else if (words.size() == 2) {
+            FileUtil::SetCurrentWorkingDirectory(words[1]);
+        } else {
+            printf("cd: too many arguments\n");
+        }
+        return;
+    }
+
+    if (program == "pwd") {
+        if (words.size() == 1) {
+            printf("%s\n", FileUtil::GetCurrentWorkingDirectory().c_str());
+        } else {
+            printf("pwd: too many arguments\n");
+        }
+        return;
+    }
+
+    if (program == "exit") {
+        printf("exit\n");
+        if (words.size() == 1) {
+            exit(0);
+        } else if (words.size() == 2) {
+            int status;
+            try {
+                status = stoi(words[1]);
+            } catch (const invalid_argument& err) {
+                printf("exit: %s: numeric argument required\n", words[1].c_str());
+                status = -1;
+            }
+            exit(status);
+        } else {
+            printf("exit: too many arguments");
+        }
+        return;
+    }
+
+    if (program == "unset") {
+        // if (words)
+        // env.unset_variable();
+    }
+
     pid = FileUtil::CreateProcess();
     if (pid == 0) {
         if (!input_file.empty()) {
@@ -64,3 +111,4 @@ string Command::ToString() {
     }
     return result;
 }
+

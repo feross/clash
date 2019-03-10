@@ -3,6 +3,10 @@
 ParsedJob JobParser::Parse(string& job_str) {
     ParsedJob job;
 
+    if (StringUtil::Trim(job_str).empty()) {
+        return job;
+    }
+
     vector<string> pipeline_strs = StringUtil::Split(job_str, ";"); //TODO: fix, maybe escaped ('\")
     for (string& pipeline_str : pipeline_strs) {
         ParsedPipeline pipeline;

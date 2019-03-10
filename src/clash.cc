@@ -34,64 +34,21 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
-    if (!args.get_string("command").empty()) {
-        vector<string> lines = StringUtil::Split(args.get_string("command"), "\n");
-        for (string& line : lines) {
-            Job job(line);
-            try {
-                debug("%s", job.ToString().c_str());
-                job.RunAndWait();
-            } catch (exception& err) {
-                printf("-clash: %s\n", err.what());
-            }
-        }
+    Shell shell;
+
+    const string& command = args.get_string("command");
+    if (!command.empty()) {
+        shell.RunJobAndWait(command);
         return EXIT_SUCCESS;
     }
 
     vector<string> unnamed_args = args.get_unnamed();
-    // Shell script mode
     if (unnamed_args.size() > 0) {
-        string script_name = unnamed_args[0];
-
-        string line;
-        ifstream script_file(script_name);
-        if (!script_file.is_open()) {
-            printf("-clash: error while opening file");
-        }
-        while (getline(script_file, line)) {
-            Job job(line);
-            try {
-                debug("%s", job.ToString().c_str());
-                job.RunAndWait();
-            } catch (exception& err) {
-                printf("-clash: %s\n", err.what());
-            }
-        }
-        if (script_file.bad()) {
-            printf("-clash: error while reading file");
-        }
-
+        const string& file_path = unnamed_args[0];
+        shell.RunFileAndWait(file_path);
         return EXIT_SUCCESS;
     }
 
-    // Interactive mode
-    char * line;
-    while (true) {
-        line = readline("% ");
-        if (line == NULL) {
-            break;
-        }
-
-        Job job(line);
-        try {
-            debug("%s", job.ToString().c_str());
-            job.RunAndWait();
-        } catch (exception& err) {
-            printf("-clash: %s\n", err.what());
-        }
-
-        free(line);
-    }
-
+    shell.StartRepl();
     return EXIT_SUCCESS;
 }

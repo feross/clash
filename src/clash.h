@@ -4,16 +4,13 @@
 
 #pragma once
 
-#include <fstream>
-#include <iostream>
-#include <readline/history.h>
-#include <readline/readline.h>
-#include <stdio.h>
 #include <string>
+#include <vector>
 
 #include "arguments.h"
 #include "job.h"
 #include "log.h"
+#include "shell.h"
 
 using namespace std;
 

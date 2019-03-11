@@ -62,5 +62,6 @@ class JobParser {
         static string ParseBackslash(string& job_str_copy, char mode = ' ');
         static string ParseVariable(string& job_str_copy);
         static string ParseBacktick(string& job_str_copy);
+        static string ParseTilde(string& job_str_copy);
 
 };

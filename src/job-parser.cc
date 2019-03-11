@@ -1,5 +1,6 @@
 #include "job-parser.h"
 #include <cstring>
+#include <cctype>
 
 ParsedJob JobParser::Parse(string& job_str) {
     // const char* job_cstr = job_str.c_str();
@@ -33,6 +34,7 @@ ParsedJob JobParser::Parse(string& job_str) {
     string partial_word = string();
     bool next_word_redirects_out = false;
     bool next_word_redirects_in = false;
+    //TODO: probably switch to "find_first_of" and "find_first_not_of" which do same thing I think
     while((match_index = strcspn(job_str_copy.c_str(), " \t\n;|<>$'`\"\\")) != job_str_copy.size()) {
         char matched = job_str_copy[match_index];
         debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
@@ -263,8 +265,8 @@ string JobParser::ParseSingleQuote(string& job_str_copy) {
 
 string JobParser::ParseBackslash(string& job_str_copy, char mode) {
     string quoted = job_str_copy.substr(0,1);
-    job_str_copy = job_str_copy.substr(1);
     if (mode == ' ') {
+        job_str_copy = job_str_copy.substr(1);
         return quoted;
     }
     //"$", "`" (backquote), double-quote, backslash, or newline;
@@ -272,9 +274,10 @@ string JobParser::ParseBackslash(string& job_str_copy, char mode) {
         string valid_matches("$`\"\\\n");
         if (valid_matches.find(quoted) == string::npos) {
             string unmodified("\\");
-            unmodified.append(quoted);
+            // unmodified.append(quoted);
             return unmodified;
         }
+        job_str_copy = job_str_copy.substr(1);
         return quoted;
     }
     //only backtick (inside, will parse as new job)
@@ -282,9 +285,19 @@ string JobParser::ParseBackslash(string& job_str_copy, char mode) {
         string valid_matches("`");
         if (valid_matches.find(quoted) == string::npos) {
             string unmodified("\\");
-            unmodified.append(quoted);
+            //newer TODO: bash actually seems to do the old behavior - e.g. echo `\\` is a complete command according to bash
+            // -> so should actually allow escaping of \ by \.
+            // unmodified.append(quoted); //TODO: WRONG to leave in, I think - e.g. double backslash, shouldn't consume second backslack
+            //TODO: confirm this was right to comment out (i.e. instead output single
+            // backslash & leave next char inside the job_str_copy in case it's special
+            // job_str_copy = job_str_copy.substr(1); //tested - bash does this, not what the spec says
             return unmodified;
         }
+        //TODO: bash actually behaves incorrectly/differently than ousterhout's code
+        //namely, bash will consider something like echo `echo \\` a complete command, even
+        //though according to spec that first backslashs should be ignored while scanning for end
+        //and the second one should cause the last ` not to match
+        job_str_copy = job_str_copy.substr(1);
         return quoted;
     }
     throw ParseException("Unknown backslash mode");
@@ -293,10 +306,43 @@ string JobParser::ParseBackslash(string& job_str_copy, char mode) {
 }
 
 string JobParser::ParseVariable(string& job_str_copy) { //TODO: push at front & reparse (may introduce words)
-    debug("string:%s", job_str_copy.c_str());
-    job_str_copy = job_str_copy.substr(1);
-    debug("string:%s", job_str_copy.c_str());
-return string(job_str_copy);
+    if (isdigit(job_str_copy[0])) {
+        // string tmp_var_str("VAR[" + job_str_copy[0] + "]");
+        string tmp_var_str("VAR[");
+        string close_str("]");
+        tmp_var_str = tmp_var_str + job_str_copy[0] + close_str;
+        //TODO: lookup correct variable
+        job_str_copy = job_str_copy.substr(1);
+        return tmp_var_str;
+    } else if (isalpha(job_str_copy[0])) {
+        int match_index = job_str_copy.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+        string matched_str = job_str_copy.substr(0,match_index);
+        string tmp_var_str("VAR[");
+        string close_str("]");
+        tmp_var_str = tmp_var_str + matched_str + close_str;
+        job_str_copy = job_str_copy.substr(match_index);
+        return tmp_var_str;
+    } else if (job_str_copy[0] == '{') {
+        int match_index = job_str_copy.find_first_of("}");
+        string matched_str = job_str_copy.substr(1,match_index-1); //skip first
+        string tmp_var_str("VAR[");
+        string close_str("]");
+        tmp_var_str = tmp_var_str + matched_str + close_str;
+        job_str_copy = job_str_copy.substr(match_index + 1);
+        return tmp_var_str;
+    } else { //no match, output literal $
+        string unmodified("$");
+        return unmodified;
+    }
+    //if { is first char, need to match to end }
+    //else if number, *, #, or ? is first character, that's all we match
+    //else if letter, match until first non-letter, non-number character)
+
+    //Then must replace as approriate... all should be in environ, right?
+//     debug("string:%s", job_str_copy.c_str());
+//     job_str_copy = job_str_copy.substr(1);
+//     debug("string:%s", job_str_copy.c_str());
+// return string(job_str_copy);
 }
 
 string JobParser::ParseBacktick(string& job_str_copy) { //TODO: push at front & reparse (may introduce words)
@@ -326,6 +372,25 @@ string JobParser::ParseBacktick(string& job_str_copy) { //TODO: push at front & 
 // return string(job_str_copy);
 }
 
+
+string JobParser::ParseTilde(string& job_str_copy) { //TODO: push at front & reparse (may introduce words)
+    //if any previous character != space or similar, then ignore & return tilde
+    //parse subsequent characters as username.
+    //If find username, substitute that
+    //else, tilde is literal & return that
+
+
+    //CAN GET TO WORK: have "prev was space or ;|> (last of which will fail with ambigious
+    // "/User/jakemck: Is a directory" [unclear if failed b/c redirecting to dir, or because
+    //has standalone directory])
+
+
+    debug("string:%s", job_str_copy.c_str());
+    job_str_copy = job_str_copy.substr(1);
+    debug("string:%s", job_str_copy.c_str());
+return string(job_str_copy);
+
+}
 
 
 

@@ -4,3 +4,18 @@ Feross Todo:
 - Support stdin detection (isatty)
 - Set home directory manually using getpwnam
 - Command lookup cache
+
+
+Incorrect spec:
+ While scanning for the terminating backquote character, no substitutions are performed except that "\`" is replaced with "`"
+
+bash on both versions I tested allows
+echo `\\` to be treated as a complete command, even though spec says that first \ will be treated as literal on the first pass (and therefore the second one should be escaped, but isn't)
+
+Moreover, the two versions of bash produce different output in these cases...
+
+
+
+"reparsed from scratch" is also a lie
+echo `echo '$PATH'` should output the content of variable path if that was true,
+instead it outputs $PATH exactly

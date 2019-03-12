@@ -127,24 +127,24 @@ void Command::RunProgram(int source, int sink) {
     pid = FileUtil::CreateProcess();
     if (pid == 0) {
         if (!input_file.empty()) {
-            if (source != 0) {
+            if (source != DEFAULT_FD) {
                 FileUtil::CloseDescriptor(source);
             }
             source = FileUtil::OpenFile(input_file);
         }
 
-        if (source != 0) {
+        if (source != DEFAULT_FD) {
             FileUtil::DuplicateDescriptor(source, STDIN_FILENO);
         }
 
         if (!output_file.empty()) {
-            if (sink != 0) {
+            if (sink != DEFAULT_FD) {
                 FileUtil::CloseDescriptor(sink);
             }
             sink = FileUtil::OpenFile(output_file, O_WRONLY | O_CREAT | O_TRUNC);
         }
 
-        if (sink != 0) {
+        if (sink != DEFAULT_FD) {
             FileUtil::DuplicateDescriptor(sink, STDOUT_FILENO);
         }
 

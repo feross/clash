@@ -6,7 +6,7 @@ void Pipeline::RunAndWait() {
     }
 
     if (commands.size() == 1) {
-        commands[0].Run(0, 0);
+        commands[0].Run(DEFAULT_FD, DEFAULT_FD);
         commands[0].Wait();
         return;
     }
@@ -16,7 +16,7 @@ void Pipeline::RunAndWait() {
     int sink = fds[1];
     int source = fds[0];
 
-    commands[0].Run(0, sink);
+    commands[0].Run(DEFAULT_FD, sink);
     FileUtil::CloseDescriptor(sink);
 
     for (size_t i = 1; i < commands.size() - 1; i++) {
@@ -31,7 +31,7 @@ void Pipeline::RunAndWait() {
     }
 
     source = fds[0];
-    commands[commands.size() - 1].Run(source, 0);
+    commands[commands.size() - 1].Run(source, DEFAULT_FD);
     FileUtil::CloseDescriptor(source);
 
     for (Command& command : commands) {

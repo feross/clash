@@ -1,7 +1,6 @@
 Feross Todo:
 
 - If pipeline has one or more built-ins and one or more commands, just run the commands
-- Support stdin detection (isatty)
 - Set home directory manually using getpwnam
 - Command lookup cache
 - File path star expansion

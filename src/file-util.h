@@ -4,14 +4,18 @@
 
 #pragma once
 
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
-#include <string.h>
+#include <pwd.h>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <vector>
+
+#include "log.h"
 
 using namespace std;
 
@@ -40,11 +44,11 @@ class FileUtil {
         static int OpenFile(string& filePath, int flags = O_RDONLY,
             mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
-        // static string ReadFile(string& filePath);
-
+        static vector<string> GetDirectoryEntries(string& path);
 
         // TODO: this does not belong here
         static pid_t CreateProcess();
         static void SetCurrentWorkingDirectory(const string& new_cwd);
         static string GetCurrentWorkingDirectory();
+        static string GetUserHomeDirectory(string& user);
 };

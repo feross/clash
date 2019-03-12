@@ -21,12 +21,9 @@ class Environment {
 
         void export_variable(const string& name);
         vector<string> get_export_variable_strings();
-        // const set<string>& get_export_variables();
 
-        // string get_current_working_directory();
-        // void set_current_working_directory(string& new_cwd);
+        string FindProgramPath(string& program_name);
     private:
         map<string, string> variables;
         set<string> export_variables;
-        // string current_working_directory;
 };

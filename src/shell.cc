@@ -80,20 +80,33 @@ void Shell::ParseFile(const string& file_path) {
 }
 
 void Shell::StartRepl() {
+    bool isTTY = isatty(STDIN_FILENO);
+    debug("isTTY: %d", isTTY);
     string remaining_job_str = string();
     while (true) {
-        string prompt("% ");
-        if (remaining_job_str.length() > 0) prompt = string("> ");
-        char* line = readline(prompt.c_str());
+        char * prompt = NULL;
+        if (isTTY) {
+            prompt = (char *) (remaining_job_str.length() == 0 ? "% " : "> ");
+        }
+
+        char* line = readline(prompt);
         if (line == NULL) {
             break;
         }
+
         remaining_job_str.append(line);
         remaining_job_str.append("\n");
+        free(line);
+
         if (ParseStringIntoJobs(remaining_job_str)) {
             RunJobsAndWait();
+            // TODO: make this string cleared in a consistent place
             remaining_job_str = string();
         }
-        free(line);
+    }
+
+    if (!remaining_job_str.empty()) {
+        printf("-clash: syntax error: unexpected end of file\n");
     }
 }
+

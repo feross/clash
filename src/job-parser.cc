@@ -221,7 +221,7 @@ string JobParser::ParseSingleQuote(string& job_str_copy) {
     int match_index = strcspn(job_str_copy.c_str(), "\'");
     string quoted = job_str_copy.substr(0,match_index);
     debug("strcspn loc str:%s, char:\'", job_str_copy.c_str() + match_index);
-    if (match_index == job_str_copy.size()) {
+    if (match_index != job_str_copy.size()) {
         job_str_copy = job_str_copy.substr(match_index + 1);
         return quoted;
     }
@@ -355,10 +355,6 @@ string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO
         }
     }
     throw IncompleteParseException("Incomplete job given, no valid closing backtick (`)");
-
-    // return quoted;
-
-// return string(job_str_copy);
 }
 
 
@@ -369,19 +365,14 @@ string JobParser::ParseTilde(string& job_str_copy, Environment& env) { //TODO: p
     //else, tilde is literal & return that
     int match_index = job_str_copy.find_first_of("/\t\n ;|<>");
     string matched_str = job_str_copy.substr(0,match_index);
-    string tmp_var_str("USERNAME[");
+    string tmp_var_str("USERNAME_LOOKUP[");
     string close_str("]");
     tmp_var_str = tmp_var_str + matched_str + close_str;
     job_str_copy = job_str_copy.substr(match_index);
     //CAN GET TO WORK: have "prev was space or ;|> (last of which will fail with ambigious
     // "/User/jakemck: Is a directory" [unclear if failed b/c redirecting to dir, or because
     //has standalone directory])
-
-
-    // debug("string:%s", job_str_copy.c_str());
-    // job_str_copy = job_str_copy.substr(1);
-    // debug("string:%s", job_str_copy.c_str());
-return string(job_str_copy);
+    return tmp_var_str;
 
 }
 

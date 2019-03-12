@@ -36,16 +36,18 @@ int main(int argc, char* argv[]) {
 
     Shell shell;
 
-    const string& command = args.get_string("command");
+    string command = args.get_string("command");
     if (!command.empty()) {
-        shell.RunJobAndWait(command);
+        shell.ParseStringIntoJobs(command);
+        shell.RunJobsAndWait();
         return EXIT_SUCCESS;
     }
 
     vector<string> unnamed_args = args.get_unnamed();
     if (unnamed_args.size() > 0) {
         const string& file_path = unnamed_args[0];
-        shell.RunFileAndWait(file_path);
+        shell.ParseFile(file_path);
+        shell.RunJobsAndWait();
         return EXIT_SUCCESS;
     }
 

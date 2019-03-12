@@ -195,6 +195,48 @@ string JobParser::SwitchParsingTarget(char matched, string& job_str_copy, Enviro
 }
 
 string JobParser::ParseDoubleQuote(string& job_str_copy, Environment& env) {
+    string quoted = string();
+    int match_index;
+    while((match_index = strcspn(job_str_copy.c_str(), "\"`$\\")) != job_str_copy.size()) {
+        char matched = job_str_copy[match_index];
+        debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
+        quoted.append(job_str_copy.substr(0,match_index));
+        job_str_copy = job_str_copy.substr(match_index + 1);
+        if (matched == '\"') {
+            return quoted;
+        } else {
+            quoted.append(SwitchParsingTarget(matched, job_str_copy, env));
+        }
+    }
+    //TODO: this means unmatched ", so should do something different
+    //for now
+    throw IncompleteParseException("Incomplete job given, no valid closing quote (\")");
+    // return quoted;
+
+// return string(message);
+}
+
+string JobParser::ParseSingleQuote(string& job_str_copy) {
+    // const char *loc = strpbrk(message, "\'");
+    int match_index = strcspn(job_str_copy.c_str(), "\'");
+    string quoted = job_str_copy.substr(0,match_index);
+    debug("strcspn loc str:%s, char:\'", job_str_copy.c_str() + match_index);
+    if (match_index == job_str_copy.size()) {
+        job_str_copy = job_str_copy.substr(match_index + 1);
+        return quoted;
+    }
+    //TODO: this means unmatched ', so should do something different
+    //for now
+    throw IncompleteParseException("Incomplete job given, no valid closing quote (')");
+    // return quoted;
+
+    //TODO: to handle "" case, instead of using size of previous to determine if should
+    // append word, set some "valid word" thing that both operates when word is nonzero size
+    // AND when we matched string.  Then will continue to match if no space, but will also
+    // create word if necessary for "" or ''
+// return string(message);
+}
+
 string JobParser::ParseBackslash(string& job_str_copy, char mode) {
     string quoted = job_str_copy.substr(0,1);
     if (mode == ' ') {

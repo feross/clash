@@ -6,6 +6,22 @@ Feross Todo:
 - Command lookup cache
 
 
+
+Other stuff:
+Re: problem with call stack as state w/ incomplete commands - just decompose out the functionality
+that allows scanning for end characters, then force full command to be given when constructing job.
+(so "> " prints handled before even try to construct job)
+-> Moreover, tested this behavior with bash & that's what bash seems to maybe do (at least, it doesn't
+run even completed `commands` until the full command has been received)
+
+-> Instead, just throw if fail during parsing.  This requires a change to how we run inline commands, however, and the command class in particular
+
+TODO: change commands class & job-parser to have job-parser not run `commands` when seen, and instead put them into the command.  Then the command will have to, when run, run this command, and invoke job-parser to parse out again... and actually, this won't totally work b/c we might change the command we're parsing into multiple commands, which affect how later things in the 
+->BUT actually NVM, because it looks like shell doesn't actually "reparse from scratch" at all, it just interprets the output as literal words, and nothing else.  So just needs to parse for words, if appropriate... unfortunately, this means we'd have to introduce some means to track whether we're in quotes, maybe... (because our call stack, which we used to track whether we were in quotes & similar things, is gone at this point)
+-> for now, redirect output into path is fine, just assume doesn't change filesystem in some non-repeatable way
+
+
+
 Incorrect spec:
  While scanning for the terminating backquote character, no substitutions are performed except that "\`" is replaced with "`"
 
@@ -15,13 +31,7 @@ echo `\\` to be treated as a complete command, even though spec says that first 
 Moreover, the two versions of bash produce different output in these cases...
 
 
-
 "reparsed from scratch" is also a lie
 echo `echo '$PATH'` should output the content of variable path if that was true,
 instead it outputs $PATH exactly
 
-Re: problem with call stack as state w/ incomplete commands - just decompose out the functionality
-that allows scanning for end characters, then force full command to be given when constructing job.
-(so "> " prints handled before even try to construct job)
--> Moreover, tested this behavior with bash & that's what bash seems to maybe do (at least, it doesn't
-run even completed `commands` until the full command has been received)

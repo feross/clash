@@ -38,17 +38,14 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
                 quote_word = false;
             }
         }
-        if (next_word_redirects_in || next_word_redirects_out) {
-            if (string("\n;|<>").find(job_str_copy[match_index]) != string::npos) {
-                string unexpected_token_error_str("syntax error near unexpected token '");
-                unexpected_token_error_str.push_back(job_str_copy[match_index]);
-                unexpected_token_error_str.push_back('\'');
-                throw FatalParseException(unexpected_token_error_str);
-            }
-        }
         if (match_index == job_str_copy.size()) break;
 
         char matched = job_str_copy[match_index];
+        if (next_word_redirects_in || next_word_redirects_out) {
+            if (string("\n;|<>").find(matched) != string::npos) {
+                throw SyntaxErrorParseException(matched);
+            }
+        }
         job_str_copy = job_str_copy.substr(match_index + 1);
 
         switch(matched) {
@@ -58,16 +55,23 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
                 debug("whitespace, prev_word:%s", partial_word.c_str());
                 continue;
             }
+            case ';':
             case '|': {
+                if (!pipeline.commands.empty() && command.words.empty()) {
+                    throw SyntaxErrorParseException(matched);
+                }
                 pipeline.commands.push_back(command);
                 command.clear();
-                continue;
-            }
-            case ';': {
-                pipeline.commands.push_back(command);
-                command.clear();
-                job.pipelines.push_back(pipeline);
-                pipeline.clear();
+                //TODO: need to introduce a variable
+                // that tracks whether the last command ended with |
+                // otherwise can't distinguish echo good;
+                // "echo good;"" vs. "echo bad |"
+                // the latter should be fine, but must ask
+                // for more characters
+                if (matched == ';') {
+                    job.pipelines.push_back(pipeline);
+                    pipeline.clear();
+                }
                 continue;
             }
             case '<': {
@@ -382,6 +386,10 @@ string JobParser::ParseTilde(string& job_str_copy, Environment& env) { //TODO: p
     //else, tilde is literal & return that
     int match_index = job_str_copy.find_first_of("/\t\n ;|<>");
     string matched_str = job_str_copy.substr(0,match_index);
+    if (matched_str.size() == 0) {
+        //just expand tilde w/o username
+        return string("/Users/FAKE_USER_REPLACE_THIS");
+    }
     string tmp_var_str("USERNAME_LOOKUP[");
     string close_str("]");
     tmp_var_str = tmp_var_str + matched_str + close_str;

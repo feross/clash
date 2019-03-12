@@ -46,6 +46,7 @@ struct ParsedJob {
 
 class IncompleteParseException : public exception {
     public:
+        IncompleteParseException() {}
         IncompleteParseException(const string& message): message(message) {}
         IncompleteParseException(const char* message): message(message) {}
         const char* what() const noexcept { return message.c_str(); }
@@ -55,9 +56,28 @@ class IncompleteParseException : public exception {
 
 class FatalParseException : public exception {
     public:
+        FatalParseException() {}
         FatalParseException(const string& message): message(message) {}
         FatalParseException(const char* message): message(message) {}
         const char* what() const noexcept { return message.c_str(); }
+    private:
+        string message;
+};
+
+// class SyntaxErrorParseException: public FatalParseException {
+//  public:
+//   SyntaxErrorParseException() throw() {}
+//   SyntaxErrorParseException(const std::string& message) throw() : HTTPProxyException(message) {}
+// };
+
+class SyntaxErrorParseException : public FatalParseException {
+    public:
+        SyntaxErrorParseException(const string& message): message(message) {}
+        SyntaxErrorParseException(const char* message): message(message) {}
+        SyntaxErrorParseException(const char ch): message(string(1, ch)) {}
+        const char* what() const noexcept {
+            return ("syntax error near unexpected token \'" + message + "\'").c_str();
+        }
     private:
         string message;
 };

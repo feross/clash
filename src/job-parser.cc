@@ -373,6 +373,26 @@ string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO
 
 // }
 string JobParser::ParseTilde(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
+    //if any previous character != space or similar, then ignore & return tilde
+    //parse subsequent characters as username.
+    //If find username, substitute that
+    //else, tilde is literal & return that
+    int match_index = job_str_copy.find_first_of("/\t\n ;|<>");
+    string matched_str = job_str_copy.substr(0,match_index);
+    string tmp_var_str("USERNAME[");
+    string close_str("]");
+    tmp_var_str = tmp_var_str + matched_str + close_str;
+    job_str_copy = job_str_copy.substr(match_index);
+    //CAN GET TO WORK: have "prev was space or ;|> (last of which will fail with ambigious
+    // "/User/jakemck: Is a directory" [unclear if failed b/c redirecting to dir, or because
+    //has standalone directory])
+
+
+    // debug("string:%s", job_str_copy.c_str());
+    // job_str_copy = job_str_copy.substr(1);
+    // debug("string:%s", job_str_copy.c_str());
+return string(job_str_copy);
+
 }
 
 

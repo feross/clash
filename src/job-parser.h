@@ -5,44 +5,44 @@
 
 using namespace std;
 
-// struct ParsedCommand {
-//     vector<string> words;
-//     string input_file;
-//     string output_file;
-//       void clear() {
-//         words.clear();
-//         input_file.clear();
-//         output_file.clear();
-//       };
-// };
+struct ParsedCommand {
+    vector<string> words;
+    string input_file;
+    string output_file;
+      void clear() {
+        words.clear();
+        input_file.clear();
+        output_file.clear();
+      };
+};
 
-// struct ParsedPipeline {
-//     vector<ParsedCommand> commands;
-//     void clear() { commands.clear(); };
-// };
+struct ParsedPipeline {
+    vector<ParsedCommand> commands;
+    void clear() { commands.clear(); };
+};
 
-// struct ParsedJob {
-//     vector<ParsedPipeline> pipelines;
-//     bool complete = true; //TODO: for cases where we have multiple lines, e.g. \\n, unmatched quotes, etc
-//     void clear() {
-//       pipelines.clear();
-//       complete = true; //TODO: false in future
-//     };
-//     void print() {
-//       debug("%s", "job:");
-//       for (ParsedPipeline& pipeline : pipelines) {
-//               debug("%s", "  pipeline:");
-//           for (ParsedCommand& command : pipeline.commands) {
-//               debug("%s", "    command:");
-//               debug("      input_file:%s", command.input_file.c_str());
-//               debug("      output_file:%s", command.output_file.c_str());
-//               for (string& command_str : command.words) {
-//                   debug("      word: %s", command_str.c_str());
-//               }
-//           }
-//       }
-//     }
-// };
+struct ParsedJob {
+    vector<ParsedPipeline> pipelines;
+    bool complete = true; //TODO: for cases where we have multiple lines, e.g. \\n, unmatched quotes, etc
+    void clear() {
+      pipelines.clear();
+      complete = true; //TODO: false in future
+    };
+    void print() {
+      debug("%s", "job:");
+      for (ParsedPipeline& pipeline : pipelines) {
+              debug("%s", "  pipeline:");
+          for (ParsedCommand& command : pipeline.commands) {
+              debug("%s", "    command:");
+              debug("      input_file:%s", command.input_file.c_str());
+              debug("      output_file:%s", command.output_file.c_str());
+              for (string& command_str : command.words) {
+                  debug("      word: %s", command_str.c_str());
+              }
+          }
+      }
+    }
+};
 
 class IncompleteParseException : public exception {
     public:

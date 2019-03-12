@@ -19,16 +19,13 @@ class Command {
         void Run(int source, int sink);
         void Wait();
         string ToString();
-
-        //TODO make private w/ methods
-        vector<string> words;
-        string input_file;
-        string output_file;
     private:
         bool RunBuiltin();
         void RunProgram(int source, int sink);
 
-
+        vector<string> words;
+        string input_file;
+        string output_file;
         pid_t pid;
         Environment& env;
 };

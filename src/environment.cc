@@ -17,10 +17,6 @@ Environment::Environment() {
     if (!variables.count("PATH")) {
         variables["PATH"] = DEFAULT_PATH_VAR;
     }
-
-    // getpwnam
-
-    // current_working_directory = FileUtil::GetCurrentWorkingDirectory();
 }
 
 const string& Environment::get_variable(const string& name) {
@@ -57,17 +53,3 @@ vector<string> Environment::get_export_variable_strings() {
     }
     return export_variable_strings;
 }
-
-// const set<string>& get_export_variables() {
-//     return export_variables;
-// }
-
-// string Environment::get_current_working_directory() {
-//     return current_working_directory;
-// }
-
-// void Environment::set_current_working_directory(string& new_cwd) {
-//     FileUtil::SetCurrentWorkingDirectory(new_cwd);
-//     current_working_directory = FileUtil::GetCurrentWorkingDirectory();
-//     debug("set cwd to '%s'", current_working_directory.c_str());
-// }

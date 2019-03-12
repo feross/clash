@@ -125,49 +125,50 @@ bool Command::RunBuiltin() {
 
 void Command::RunProgram(int source, int sink) {
     pid = FileUtil::CreateProcess();
-    if (pid == 0) {
-        if (!input_file.empty()) {
-            if (source != DEFAULT_FD) {
-                FileUtil::CloseDescriptor(source);
-            }
-            source = FileUtil::OpenFile(input_file);
-        }
 
-        if (source != DEFAULT_FD) {
-            FileUtil::DuplicateDescriptor(source, STDIN_FILENO);
-        }
-
-        if (!output_file.empty()) {
-            if (sink != DEFAULT_FD) {
-                FileUtil::CloseDescriptor(sink);
-            }
-            sink = FileUtil::OpenFile(output_file, O_WRONLY | O_CREAT | O_TRUNC);
-        }
-
-        if (sink != DEFAULT_FD) {
-            FileUtil::DuplicateDescriptor(sink, STDOUT_FILENO);
-        }
-
-        char * argv[words.size() + 1];
-        for (size_t i = 0; i < words.size(); i++) {
-            argv[i] = const_cast<char *>(words[i].c_str());
-        }
-        argv[words.size()] = NULL;
-
-        vector<string> variable_strings = env.get_export_variable_strings();
-        char * envp[variable_strings.size() + 1];
-        for (size_t i = 0; i < variable_strings.size(); i++) {
-            envp[i] = const_cast<char *>(variable_strings[i].c_str());
-        }
-        argv[variable_strings.size()] = NULL;
-
-        // TODO: update based on answer to Piazza question:
-        // https://piazza.com/class/jn53jliwaz842
-        // execve(argv[0], argv, envp);
-        execvp(argv[0], argv);
-
-        fprintf(stderr, "-clash: %s: command not found\n", argv[0]);
-        exit(0);
+    if (pid != 0) {
         return;
     }
+
+    if (!input_file.empty()) {
+        if (source != DEFAULT_FD) {
+            FileUtil::CloseDescriptor(source);
+        }
+        source = FileUtil::OpenFile(input_file);
+    }
+
+    if (source != DEFAULT_FD) {
+        FileUtil::DuplicateDescriptor(source, STDIN_FILENO);
+    }
+
+    if (!output_file.empty()) {
+        if (sink != DEFAULT_FD) {
+            FileUtil::CloseDescriptor(sink);
+        }
+        sink = FileUtil::OpenFile(output_file, O_WRONLY | O_CREAT | O_TRUNC);
+    }
+
+    if (sink != DEFAULT_FD) {
+        FileUtil::DuplicateDescriptor(sink, STDOUT_FILENO);
+    }
+
+    char * argv[words.size() + 1];
+    for (size_t i = 0; i < words.size(); i++) {
+        argv[i] = const_cast<char *>(words[i].c_str());
+    }
+    argv[words.size()] = NULL;
+
+    char * program_path = env.FindProgram(argv[0]);
+
+    vector<string> variable_strings = env.get_export_variable_strings();
+    char * envp[variable_strings.size() + 1];
+    for (size_t i = 0; i < variable_strings.size(); i++) {
+        envp[i] = const_cast<char *>(variable_strings[i].c_str());
+    }
+    argv[variable_strings.size()] = NULL;
+
+    execve(argv[0], argv, envp);
+
+    fprintf(stderr, "-clash: %s: command not found\n", argv[0]);
+    exit(0);
 }

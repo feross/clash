@@ -365,10 +365,46 @@ string JobParser::SwitchParsingTarget(char matched, string& job_str_copy, Enviro
 string JobParser::ParseDoubleQuote(string& job_str_copy, Environment& env) {
 
 string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
+    if (isdigit(job_str_copy[0])) {
+        // string tmp_var_str("VAR[" + job_str_copy[0] + "]");
+        string tmp_var_str("VAR[");
+        string close_str("]");
+        tmp_var_str = tmp_var_str + job_str_copy[0] + close_str;
+        //TODO: lookup correct variable
+        job_str_copy = job_str_copy.substr(1);
+        return tmp_var_str;
+    } else if (isalpha(job_str_copy[0])) {
+        int match_index = job_str_copy.find_first_not_of(
+          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+        string matched_str = job_str_copy.substr(0,match_index);
+        string tmp_var_str("VAR[");
+        string close_str("]");
+        tmp_var_str = tmp_var_str + matched_str + close_str;
+        job_str_copy = job_str_copy.substr(match_index);
+        return tmp_var_str;
+    } else if (job_str_copy[0] == '{') {
+        int match_index = job_str_copy.find_first_of("}");
+        string matched_str = job_str_copy.substr(1,match_index-1); //skip first
+        string tmp_var_str("VAR[");
+        string close_str("]");
+        tmp_var_str = tmp_var_str + matched_str + close_str;
+        job_str_copy = job_str_copy.substr(match_index + 1);
+        return tmp_var_str;
+    } else { //no match, output literal $
+        string unmodified("$");
+        return unmodified;
+    }
+    //if { is first char, need to match to end }
+    //else if number, *, #, or ? is first character, that's all we match
+    //else if letter, match until first non-letter, non-number character)
+
+    //Then must replace as approriate... all should be in environ, right?
 //     debug("string:%s", job_str_copy.c_str());
 //     job_str_copy = job_str_copy.substr(1);
 //     debug("string:%s", job_str_copy.c_str());
 // return string(job_str_copy);
+}
+
 string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
     string quoted = string();
     int match_index;

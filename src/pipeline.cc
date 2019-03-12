@@ -1,38 +1,38 @@
 #include "pipeline.h"
 
-void Pipeline::RunAndWait() {
+void Pipeline::RunAndWait(int pipeline_source, int pipeline_sink) {
     if (commands.size() == 0) {
         return;
     }
 
     if (commands.size() == 1) {
-        commands[0].Run(STDIN_FILENO, STDOUT_FILENO);
+        commands[0].Run(pipeline_source, pipeline_sink);
         commands[0].Wait();
         return;
     }
 
     int fds[2];
     FileUtil::CreatePipe(fds);
-    int sink = fds[1];
-    int source = fds[0];
+    int command_sink = fds[1];
+    int command_source = fds[0];
 
-    commands[0].Run(STDIN_FILENO, sink);
-    FileUtil::CloseDescriptor(sink);
+    commands[0].Run(pipeline_source, command_sink);
+    FileUtil::CloseDescriptor(command_sink);
 
     for (size_t i = 1; i < commands.size() - 1; i++) {
-        source = fds[0];
+        command_source = fds[0];
         FileUtil::CreatePipe(fds);
-        sink = fds[1];
+        command_sink = fds[1];
 
-        commands[i].Run(source, sink);
+        commands[i].Run(command_source, command_sink);
 
-        FileUtil::CloseDescriptor(source);
-        FileUtil::CloseDescriptor(sink);
+        FileUtil::CloseDescriptor(command_source);
+        FileUtil::CloseDescriptor(command_sink);
     }
 
-    source = fds[0];
-    commands[commands.size() - 1].Run(source, STDOUT_FILENO);
-    FileUtil::CloseDescriptor(source);
+    command_source = fds[0];
+    commands[commands.size() - 1].Run(command_source, pipeline_sink);
+    FileUtil::CloseDescriptor(command_source);
 
     for (Command& command : commands) {
         command.Wait();

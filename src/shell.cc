@@ -34,7 +34,7 @@ bool Shell::ParseStringIntoJobs(string& job_str) {
         // printf("\nFAILED PARSING\n");
         return false;
     } catch (FatalParseException& fpe) {
-        printf("Error: %s\n", fpe.what());
+        printf("-clash: %s\n", fpe.what());
         job_str = string();
         return true;
     }
@@ -97,6 +97,8 @@ void Shell::StartRepl() {
         remaining_job_str.append(line);
         remaining_job_str.append("\n");
         free(line);
+
+        // printf("str:%s\n", remaining_job_str.c_str());
 
         if (ParseStringIntoJobs(remaining_job_str)) {
             RunJobsAndWait();

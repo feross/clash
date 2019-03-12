@@ -12,7 +12,7 @@ using namespace std;
 class Pipeline {
     public:
         Pipeline(vector<Command> commands) : commands(commands) {}
-        void RunAndWait();
+        void RunAndWait(int pipeline_source = STDIN_FILENO, int pipeline_sink = STDOUT_FILENO);
         string ToString();
     private:
         vector<Command> commands;

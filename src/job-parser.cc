@@ -1,5 +1,6 @@
 #include "job-parser.h"
 #include "job.h"
+
 #include <cstring>
 #include <cctype>
 
@@ -39,7 +40,6 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
             }
         }
         if (match_index == job_str_copy.size()) break;
-
         char matched = job_str_copy[match_index];
         if (next_word_redirects_in || next_word_redirects_out) {
             if (string("\n;|<>").find(matched) != string::npos) {
@@ -57,7 +57,7 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
             }
             case ';':
             case '|': {
-                if (!pipeline.commands.empty() && command.words.empty()) {
+                if (command.words.empty()) {
                     throw SyntaxErrorParseException(matched);
                 }
                 pipeline.commands.push_back(command);
@@ -128,7 +128,6 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
     // }
     if (command.words.size() > 0) pipeline.commands.push_back(command);
     if (pipeline.commands.size() > 0) job.pipelines.push_back(pipeline);
-
     job.print();
     if (true) return job;
     //handle_found(loc[0], loc) -> switches to whichever function is appropriate to match
@@ -299,6 +298,8 @@ string JobParser::ParseBackslash(string& job_str_copy, char mode) {
 // return string(job_str_copy);
 }
 
+//TODO: parse whitespace on return IF AND ONLY IF this is in main unquoted lines
+//    ---> ideally, in main thread, but then have a temp-state thing I don't love
 string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
     char first_var_char = job_str_copy[0];
     string variable_name;
@@ -329,6 +330,8 @@ string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO
     return var_value;
 }
 
+//TODO: parse whitespace on return IF AND ONLY IF this is in main unquoted lines
+//    ---> ideally, in main thread, but then have a temp-state thing I don't love
 string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
     string quoted = string();
     int match_index;
@@ -343,18 +346,24 @@ string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO
             fake_return_str.append("]");
 
             try {
-              Job(quoted, env).RunAndWait();  //TODO redirect this to put inside our string
+                int fds[2];
+                FileUtil::CreatePipe(fds);
+                int read = fds[0];
+                int write = STDOUT_FILENO; //fds[1];
+                Job(quoted, env).RunAndWait(sink = write);  //TODO redirect this to put inside our string
+                FileUtil::CloseDescriptor(write);
+                FileUtil::CloseDescriptor(read);
             } catch (IncompleteParseException& ipe) {
-              //TODO: probably should probably define more different errors for each
-              string subcommand_err_message("Error within Subcommand: ");
-              subcommand_err_message.append(ipe.what());
-              throw FatalParseException(subcommand_err_message);
+                //TODO: probably should probably define more different errors for each
+                string subcommand_err_message("command substitution: ");
+                subcommand_err_message.append(ipe.what());
+                throw FatalParseException(subcommand_err_message);
             } catch (FatalParseException& fpe) {
-              //TODO: maybe just allow this to propogate?  Idk feels like I should
-              //say that it's within a subcommand
-              string subcommand_err_message("Error within Subcommand: ");
-              subcommand_err_message.append(fpe.what());
-              throw FatalParseException(subcommand_err_message);
+                //TODO: maybe just allow this to propogate?  Idk feels like I should
+                //say that it's within a subcommand
+                string subcommand_err_message("command substitution: ");
+                subcommand_err_message.append(fpe.what());
+                throw FatalParseException(subcommand_err_message);
             }
             int extra_space = fake_return_str.size();
             job_str_copy.reserve(job_str_copy.capacity() + extra_space);
@@ -377,16 +386,18 @@ string JobParser::ParseTilde(string& job_str_copy, Environment& env) { //TODO: p
     string matched_str = job_str_copy.substr(0,match_index);
     if (matched_str.size() == 0) {
         //just expand tilde w/o username
-        return string("/Users/FAKE_USER_REPLACE_THIS");
+        return env.get_variable("HOME"); //as per spec, this is default
     }
-    string tmp_var_str("USERNAME_LOOKUP[");
-    string close_str("]");
-    tmp_var_str = tmp_var_str + matched_str + close_str;
+    string home_dir = FileUtil::GetUserHomeDirectory(matched_str);
+    if (home_dir == "") {
+        //no user found, just use literal tilde & consume no input
+        return string("~");
+    }
     job_str_copy = job_str_copy.substr(match_index);
     //CAN GET TO WORK: have "prev was space or ;|> (last of which will fail with ambigious
     // "/User/jakemck: Is a directory" [unclear if failed b/c redirecting to dir, or because
     //has standalone directory])
-    return tmp_var_str;
+    return home_dir;
 
 }
 

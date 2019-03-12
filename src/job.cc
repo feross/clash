@@ -2,7 +2,6 @@
 
 Job::Job(string& job_str, Environment& env) :
     original_job_str(job_str), env(env) {
-    
     ParsedJob parsed_job = job_parser.Parse(job_str, env);
 
     for (ParsedPipeline& parsed_pipeline : parsed_job.pipelines) {
@@ -18,9 +17,9 @@ Job::Job(string& job_str, Environment& env) :
     }
 }
 
-void Job::RunAndWait() {
+void Job::RunAndWait(int job_source, int job_sink) {
     for (Pipeline& pipeline : pipelines) {
-        pipeline.RunAndWait();
+        pipeline.RunAndWait(job_source, job_sink);
     }
 }
 

@@ -52,7 +52,7 @@ class Job {
          * an error running the job for any reason (e.g. the program is missing,
          * the system ran out of file descriptors, etc.)
          */
-        void RunAndWait();
+        void RunAndWait(int job_source = STDIN_FILENO, int job_sink = STDOUT_FILENO);
 
         /**
          * Print a readable string representation of the job, including the

@@ -38,6 +38,13 @@ int FileUtil::OpenFile(string& filePath, int flags, mode_t mode) {
     return fd;
 }
 
+// string FileUtil::DumpDescriptorIntoString(int descriptor) {
+//     string contents();
+
+
+//     return contents;
+// }
+
 vector<string> FileUtil::GetDirectoryEntries(string& path) {
     vector<string> entries;
 

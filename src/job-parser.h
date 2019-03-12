@@ -43,14 +43,14 @@ using namespace std;
 //     }
 // };
 
-// class ParseException : public exception {
-//     public:
-//         ParseException(const string& message): message(message) {}
-//         ParseException(const char* message): message(message) {}
-//         const char* what() const noexcept { return message.c_str(); }
-//     private:
-//         string message;
-// };
+class IncompleteParseException : public exception {
+    public:
+        IncompleteParseException(const string& message): message(message) {}
+        IncompleteParseException(const char* message): message(message) {}
+        const char* what() const noexcept { return message.c_str(); }
+    private:
+        string message;
+};
 
 // class JobParser {
 //     public:
@@ -63,5 +63,13 @@ using namespace std;
 //         static string ParseVariable(string& job_str_copy);
 //         static string ParseBacktick(string& job_str_copy);
 //         static string ParseTilde(string& job_str_copy);
+class FatalParseException : public exception {
+    public:
+        FatalParseException(const string& message): message(message) {}
+        FatalParseException(const char* message): message(message) {}
+        const char* what() const noexcept { return message.c_str(); }
+    private:
+        string message;
+};
 
 // };

@@ -13,8 +13,6 @@
 
 using namespace std;
 
-static const int DEFAULT_FD = -1;
-
 class Command {
     public:
         Command(ParsedCommand parsed_command, Environment& env);

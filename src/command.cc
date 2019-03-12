@@ -125,32 +125,20 @@ bool Command::RunBuiltin() {
 
 void Command::RunProgram(int source, int sink) {
     pid = FileUtil::CreateProcess();
-
     if (pid != 0) {
         return;
     }
 
     if (!input_file.empty()) {
-        if (source != DEFAULT_FD) {
-            FileUtil::CloseDescriptor(source);
-        }
         source = FileUtil::OpenFile(input_file);
     }
 
-    if (source != DEFAULT_FD) {
-        FileUtil::DuplicateDescriptor(source, STDIN_FILENO);
-    }
-
     if (!output_file.empty()) {
-        if (sink != DEFAULT_FD) {
-            FileUtil::CloseDescriptor(sink);
-        }
         sink = FileUtil::OpenFile(output_file, O_WRONLY | O_CREAT | O_TRUNC);
     }
 
-    if (sink != DEFAULT_FD) {
-        FileUtil::DuplicateDescriptor(sink, STDOUT_FILENO);
-    }
+    FileUtil::DuplicateDescriptor(source, STDIN_FILENO);
+    FileUtil::DuplicateDescriptor(sink, STDOUT_FILENO);
 
     char * argv[words.size() + 1];
     for (size_t i = 0; i < words.size(); i++) {

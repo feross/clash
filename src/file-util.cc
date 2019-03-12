@@ -61,3 +61,15 @@ string FileUtil::GetCurrentWorkingDirectory() {
     }
     return string(cwd);
 }
+
+// TODO: Use this in the parser for username parsing
+string FileUtil::GetUserHomeDirectory(string& user) {
+    passwd * pw = getpwnam(user.c_str());
+
+    if (pw == NULL) {
+        return "";
+    }
+
+    char * home_dir = pw->pw_dir;
+    return string(home_dir);
+}

@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
-#include <string.h>
+#include <pwd.h>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -47,4 +47,5 @@ class FileUtil {
         static pid_t CreateProcess();
         static void SetCurrentWorkingDirectory(const string& new_cwd);
         static string GetCurrentWorkingDirectory();
+        static string GetUserHomeDirectory(string& user);
 };

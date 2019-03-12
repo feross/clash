@@ -370,8 +370,40 @@ string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO
 //     debug("string:%s", job_str_copy.c_str());
 // return string(job_str_copy);
 string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
+    string quoted = string();
+    int match_index;
+    while((match_index = strcspn(job_str_copy.c_str(), "`\\")) != job_str_copy.size()) {
+        char matched = job_str_copy[match_index];
+        debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
+        quoted.append(job_str_copy.substr(0,match_index));
+        job_str_copy = job_str_copy.substr(match_index + 1);
+        if (matched == '`') {
+            string fake_return_str("COMMAND:[");
+            fake_return_str.append(quoted);
+            fake_return_str.append("]");
 
-// }
+            try {
+              Job(quoted, env).RunAndWait();  //TODO redirect this to put inside our string
+            } catch (IncompleteParseException& pe) {
+              //TODO: make failing parse exception, in addition to "need more stuff" one
+              throw FatalParseException("Unmatched (`) in subcommand, unrecoverable");
+            }
+            int extra_space = fake_return_str.size();
+            job_str_copy.reserve(job_str_copy.capacity() + extra_space);
+            job_str_copy.insert(0, fake_return_str);
+            return string();
+        } else {
+            quoted.append(ParseBackslash(job_str_copy, '`'));
+        }
+    }
+    throw IncompleteParseException("Incomplete job given, no valid closing backtick (`)");
+
+    // return quoted;
+
+// return string(job_str_copy);
+}
+
+
 string JobParser::ParseTilde(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
     //if any previous character != space or similar, then ignore & return tilde
     //parse subsequent characters as username.

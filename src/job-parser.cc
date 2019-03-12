@@ -300,44 +300,33 @@ string JobParser::ParseBackslash(string& job_str_copy, char mode) {
 }
 
 string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
-    if (isdigit(job_str_copy[0])) {
-        // string tmp_var_str("VAR[" + job_str_copy[0] + "]");
-        string tmp_var_str("VAR[");
-        string close_str("]");
-        tmp_var_str = tmp_var_str + job_str_copy[0] + close_str;
-        //TODO: lookup correct variable
+    char first_var_char = job_str_copy[0];
+    string variable_name;
+    if (string("*?#").find(first_var_char) != string::npos ||
+        isdigit(first_var_char)) {
+        variable_name = string(1, first_var_char);
         job_str_copy = job_str_copy.substr(1);
-        return tmp_var_str;
-    } else if (isalpha(job_str_copy[0])) {
+    } else if (first_var_char =='{') {
+        int match_index = job_str_copy.find_first_of("}");
+        variable_name = job_str_copy.substr(1,match_index-1); //skip first
+        job_str_copy = job_str_copy.substr(match_index + 1);
+    } else if (isalpha(first_var_char)) {
         int match_index = job_str_copy.find_first_not_of(
           "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-        string matched_str = job_str_copy.substr(0,match_index);
-        string tmp_var_str("VAR[");
-        string close_str("]");
-        tmp_var_str = tmp_var_str + matched_str + close_str;
+        variable_name = job_str_copy.substr(0,match_index);
         job_str_copy = job_str_copy.substr(match_index);
-        return tmp_var_str;
-    } else if (job_str_copy[0] == '{') {
-        int match_index = job_str_copy.find_first_of("}");
-        string matched_str = job_str_copy.substr(1,match_index-1); //skip first
-        string tmp_var_str("VAR[");
-        string close_str("]");
-        tmp_var_str = tmp_var_str + matched_str + close_str;
-        job_str_copy = job_str_copy.substr(match_index + 1);
-        return tmp_var_str;
-    } else { //no match, output literal $
+    } else {
         string unmodified("$");
         return unmodified;
     }
-    //if { is first char, need to match to end }
-    //else if number, *, #, or ? is first character, that's all we match
-    //else if letter, match until first non-letter, non-number character)
 
-    //Then must replace as approriate... all should be in environ, right?
-//     debug("string:%s", job_str_copy.c_str());
-//     job_str_copy = job_str_copy.substr(1);
-//     debug("string:%s", job_str_copy.c_str());
-// return string(job_str_copy);
+
+    string var_value = env.get_variable(variable_name);
+    string tmp_var_str("VAR[");
+    string close_str("]");
+    tmp_var_str = tmp_var_str + variable_name + close_str;
+    // return tmp_var_str;
+    return var_value;
 }
 
 string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)

@@ -13,10 +13,12 @@ using namespace std;
 
 class Shell {
     public:
-        void RunJobAndWait(const string& job_str);
-        void RunJobAndWait(const char * job_str);
+        bool ParseStringIntoJobs(string& job_str);
+        // void ParseStringIntoJobs(const char * job_str);
 
-        void RunFileAndWait(const string& file_path);
+        void RunJobsAndWait();
+
+        void ParseFile(const string& file_path);
         void StartRepl();
     private:
         Environment env;

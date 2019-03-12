@@ -19,3 +19,9 @@ Moreover, the two versions of bash produce different output in these cases...
 "reparsed from scratch" is also a lie
 echo `echo '$PATH'` should output the content of variable path if that was true,
 instead it outputs $PATH exactly
+
+Re: problem with call stack as state w/ incomplete commands - just decompose out the functionality
+that allows scanning for end characters, then force full command to be given when constructing job.
+(so "> " prints handled before even try to construct job)
+-> Moreover, tested this behavior with bash & that's what bash seems to maybe do (at least, it doesn't
+run even completed `commands` until the full command has been received)

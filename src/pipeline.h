@@ -14,6 +14,8 @@ class Pipeline {
         Pipeline(vector<Command> commands) : commands(commands) {}
         void RunAndWait();
         string ToString();
-    private:
+
+        //TODO: make private w/ methods
         vector<Command> commands;
+    private:
 };

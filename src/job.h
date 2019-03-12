@@ -27,6 +27,54 @@
 
 using namespace std;
 
+struct ParsedCommand {
+    vector<string> words;
+    string input_file;
+    string output_file;
+      void clear() {
+        words.clear();
+        input_file.clear();
+        output_file.clear();
+      };
+};
+
+struct ParsedPipeline {
+    vector<ParsedCommand> commands;
+    void clear() { commands.clear(); };
+};
+
+struct ParsedJob {
+    vector<ParsedPipeline> pipelines;
+    bool complete = true; //TODO: for cases where we have multiple lines, e.g. \\n, unmatched quotes, etc
+    void clear() {
+      pipelines.clear();
+      complete = true; //TODO: false in future
+    };
+    void print() {
+      debug("%s", "job:");
+      for (ParsedPipeline& pipeline : pipelines) {
+              debug("%s", "  pipeline:");
+          for (ParsedCommand& command : pipeline.commands) {
+              debug("%s", "    command:");
+              debug("      input_file:%s", command.input_file.c_str());
+              debug("      output_file:%s", command.output_file.c_str());
+              for (string& command_str : command.words) {
+                  debug("      word: %s", command_str.c_str());
+              }
+          }
+      }
+    }
+};
+
+class ParseException : public exception {
+    public:
+        ParseException(const string& message): message(message) {}
+        ParseException(const char* message): message(message) {}
+        const char* what() const noexcept { return message.c_str(); }
+    private:
+        string message;
+};
+
 class Job {
     public:
         /*
@@ -38,9 +86,9 @@ class Job {
          * @param job_str The line (or lines) of text entered on the terminal
          *                by the user.
          */
-        Job(string job_str, Environment& env);
-        Job(char * job_str, Environment& env) :
-            Job(string(job_str), env) {}
+        Job(string& job_str, Environment& env);
+        // Job(char * job_str, Environment& env) :
+        //     Job(string(job_str), env) {};
 
         /**
          * Run the job, including all pipelines and commands contained within.
@@ -60,17 +108,9 @@ class Job {
 
     private:
         /**
-         * Parse a user-provided job entered on the terminal into a usable form
-         * so it can be run when ready.
-         *
-         * May throw an exception if the input is unable to be parsed.
-         */
-        void Parse();
-
-        /**
          * The line (or lines) of text entered on the terminal by the user
          */
-        string job_str;
+        string original_job_str;
 
         /**
          * Instance of the job parser; used to actually parse the string
@@ -84,11 +124,13 @@ class Job {
          */
         vector<Pipeline> pipelines;
 
-        /**
-         * Set to true once the job string has been parsed. Prevents
-         * from happening multiple times.
-         */
-        bool has_parsed;
-
         Environment& env;
+
+        static string SwitchParsingTarget(char matched, string& loc);
+        static string ParseDoubleQuote(string& job_str_copy);
+        static string ParseSingleQuote(string& job_str_copy);
+        static string ParseBackslash(string& job_str_copy, char mode = ' ');
+        static string ParseVariable(string& job_str_copy);
+        static string ParseBacktick(string& job_str_copy);
+        static string ParseTilde(string& job_str_copy);
 };

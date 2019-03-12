@@ -38,6 +38,14 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
                 quote_word = false;
             }
         }
+        if (next_word_redirects_in || next_word_redirects_out) {
+            if (string("\n;|<>").find(job_str_copy[match_index]) != string::npos) {
+                string unexpected_token_error_str("syntax error near unexpected token '");
+                unexpected_token_error_str.push_back(job_str_copy[match_index]);
+                unexpected_token_error_str.push_back('\'');
+                throw FatalParseException(unexpected_token_error_str);
+            }
+        }
         if (match_index == job_str_copy.size()) break;
 
         char matched = job_str_copy[match_index];
@@ -50,16 +58,16 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
                 debug("whitespace, prev_word:%s", partial_word.c_str());
                 continue;
             }
+            case '|': {
+                pipeline.commands.push_back(command);
+                command.clear();
+                continue;
+            }
             case ';': {
                 pipeline.commands.push_back(command);
                 command.clear();
                 job.pipelines.push_back(pipeline);
                 pipeline.clear();
-                continue;
-            }
-            case '|': {
-                pipeline.commands.push_back(command);
-                command.clear();
                 continue;
             }
             case '<': {
@@ -97,6 +105,7 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
         }
         debug("%s", "reloop");
     }
+
     //end of file, parse one last thing
     // char matched = job_str[match_index];
     // debug("end strcspn loc:%s %c", job_str_copy.c_str() + match_index, matched);
@@ -342,9 +351,17 @@ string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO
 
             try {
               Job(quoted, env).RunAndWait();  //TODO redirect this to put inside our string
-            } catch (IncompleteParseException& pe) {
-              //TODO: make failing parse exception, in addition to "need more stuff" one
-              throw FatalParseException("Unmatched (`) in subcommand, unrecoverable");
+            } catch (IncompleteParseException& ipe) {
+              //TODO: probably should probably define more different errors for each
+              string subcommand_err_message("Error within Subcommand: ");
+              subcommand_err_message.append(ipe.what());
+              throw FatalParseException(subcommand_err_message);
+            } catch (FatalParseException& fpe) {
+              //TODO: maybe just allow this to propogate?  Idk feels like I should
+              //say that it's within a subcommand
+              string subcommand_err_message("Error within Subcommand: ");
+              subcommand_err_message.append(fpe.what());
+              throw FatalParseException(subcommand_err_message);
             }
             int extra_space = fake_return_str.size();
             job_str_copy.reserve(job_str_copy.capacity() + extra_space);

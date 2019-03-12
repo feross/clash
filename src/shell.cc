@@ -24,7 +24,6 @@ bool Shell::ParseStringIntoJobs(string& job_str) {
     //     return true; //completed, ready to run
     // }
     // return false;
-    string remaining_job_str(job_str);
     //TODO: I think b/c we only parse completed commands, there can only be one job
     //UNLESS someone uses this parse mutliple times without running the parsed jobs
     try {

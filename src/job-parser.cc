@@ -3,75 +3,52 @@
 #include <cctype>
 
 ParsedJob JobParser::Parse(string& job_str) {
-    // const char* job_cstr = job_str.c_str();
-
     string job_str_copy(job_str);
-
-    // vector<string> pipeline_strs;
-    // vector<string> command_strs;
-    //             ParsedCommand command;
-    // int match_index;
-    // while((match_index = strcspn(job_str_copy.c_str(), ";'`\"")) != job_str_copy.size()) {
-    //     char matched = job_str[match_index];
-
-    //     if (matched == ';') {
-    //         if (match_index != 0) {
-    //             if (job_str_copy[match_index-1] == '\\') continue;
-    //         }
-    //         command_strs.append(job_str_copy.substr(0, match_index))
-    //         job_str_copy = job_str_copy.substr(match_index + 1);
-    //     }
-    // }
-    // ParseVariable(job_str_copy);
-    // ParseVariable(job_str_copy);
-    // ParseVariable(job_str_copy);
-
     ParsedCommand command;
     ParsedPipeline pipeline;
     ParsedJob job;
 
-    int match_index;
+    // int match_index;
     string partial_word = string();
     bool next_word_redirects_out = false;
     bool next_word_redirects_in = false;
+    bool quote_word = false;
     //TODO: probably switch to "find_first_of" and "find_first_not_of" which do same thing I think
-    while((match_index = strcspn(job_str_copy.c_str(), " \t\n;|<>$'`\"\\")) != job_str_copy.size()) {
-        char matched = job_str_copy[match_index];
-        debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
-        debug("partial_word: %s", partial_word.c_str());
+    while(true) {
+        int match_index = strcspn(job_str_copy.c_str(), " \t\n;|<>$'`\"\\");
+        // debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
+        // debug("partial_word: %s", partial_word.c_str());
         if (match_index != 0) partial_word.append(job_str_copy.substr(0,match_index));
-        debug("partial_word: %s", partial_word.c_str());
-        job_str_copy = job_str_copy.substr(match_index + 1);
-        debug("new job_str_copy:%s", job_str_copy.c_str());
-        switch(matched) {
+        // debug("partial_word: %s", partial_word.c_str());
+        // debug("new job_str_copy:%s", job_str_copy.c_str());
+        // string endword_chars("\t\n ;|<>");
+        if (match_index == job_str_copy.size() || string("\t\n ;|<>").find(job_str_copy[match_index])) {
+            //word break
+            if (partial_word.size() > 0 || quote_word) { //TODO: change to var, so works with "" words
+                if (next_word_redirects_in) {
+                    command.input_file = partial_word;
+                    next_word_redirects_in = false;
+                } else if (next_word_redirects_out) {
+                    command.output_file = partial_word;
+                    next_word_redirects_out = false;
+                } else command.words.push_back(partial_word);
+                partial_word = string();
+                quote_word = false;
+            }
+        }
+        if (match_index == job_str_copy.size()) break;
 
+        char matched = job_str_copy[match_index];
+        job_str_copy = job_str_copy.substr(match_index + 1);
+
+        switch(matched) {
             case '\t':
             case ' ':
             case '\n': {
                 debug("whitespace, prevstuf:%s", partial_word.c_str());
-                if (partial_word.size() > 0) {
-                    if (next_word_redirects_in) {
-                        command.input_file = partial_word;
-                        next_word_redirects_in = false;
-                    } else if (next_word_redirects_out) {
-                        command.output_file = partial_word;
-                        next_word_redirects_out = false;
-                    } else command.words.push_back(partial_word);
-                    partial_word = string();
-                }
                 continue;
             }
             case ';': {
-                if (partial_word.size() > 0) {
-                    if (next_word_redirects_in) {
-                        command.input_file = partial_word;
-                        next_word_redirects_in = false;
-                    } else if (next_word_redirects_out) {
-                        command.output_file = partial_word;
-                        next_word_redirects_out = false;
-                    } else command.words.push_back(partial_word);
-                    partial_word = string();
-                }
                 pipeline.commands.push_back(command);
                 command.clear();
                 job.pipelines.push_back(pipeline);
@@ -79,155 +56,129 @@ ParsedJob JobParser::Parse(string& job_str) {
                 continue;
             }
             case '|': {
-                if (partial_word.size() > 0) {
-                    if (next_word_redirects_in) {
-                        command.input_file = partial_word;
-                        next_word_redirects_in = false;
-                    } else if (next_word_redirects_out) {
-                        command.output_file = partial_word;
-                        next_word_redirects_out = false;
-                    } else command.words.push_back(partial_word);
-                    partial_word = string();
-                }
                 pipeline.commands.push_back(command);
                 command.clear();
                 continue;
             }
             case '<': {
-                if (partial_word.size() > 0) {
-                    if (next_word_redirects_in) {
-                        command.input_file = partial_word;
-                        next_word_redirects_in = false;
-                    } else if (next_word_redirects_out) {
-                        command.output_file = partial_word;
-                        next_word_redirects_out = false;
-                    } else command.words.push_back(partial_word);
-                    partial_word = string();
-                }
                 next_word_redirects_in = true;
                 continue;
             }
             case '>': {
-                if (partial_word.size() > 0) {
-                    if (next_word_redirects_in) {
-                        command.input_file = partial_word;
-                        next_word_redirects_in = false;
-                    } else if (next_word_redirects_out) {
-                        command.output_file = partial_word;
-                        next_word_redirects_out = false;
-                    } else command.words.push_back(partial_word);
-                    partial_word = string();
-                }
                 next_word_redirects_out = true;
+                continue;
+            }
+            case '\"': {
+                partial_word.append(ParseDoubleQuote(job_str_copy));
+                continue;
+            }
+            case '\'': {
+                partial_word.append(ParseSingleQuote(job_str_copy));
+                quote_word = true;
                 continue;
             }
             default : {
                 partial_word.append(SwitchParsingTarget(matched, job_str_copy));
+                quote_word = true;
             }
         }
         debug("%s", "reloop");
     }
     //end of file, parse one last thing
-    char matched = job_str[match_index];
-    debug("end strcspn loc:%s %c", job_str_copy.c_str() + match_index, matched);
-    debug("end partial_word: %s", partial_word.c_str());
-    if (match_index != 0) partial_word.append(job_str_copy.substr(0,match_index));
-    debug("end partial_word: %s", partial_word.c_str());
-    if (partial_word.size() > 0) {
-        if (next_word_redirects_in) {
-            command.input_file = partial_word;
-            next_word_redirects_in = false;
-        } else if (next_word_redirects_out) {
-            command.output_file = partial_word;
-            next_word_redirects_out = false;
-        } else command.words.push_back(partial_word);
-        partial_word = string();
-    }
-    pipeline.commands.push_back(command);
-    job.pipelines.push_back(pipeline);
+    // char matched = job_str[match_index];
+    // debug("end strcspn loc:%s %c", job_str_copy.c_str() + match_index, matched);
+    // debug("end partial_word: %s", partial_word.c_str());
+    // if (match_index != 0) partial_word.append(job_str_copy.substr(0,match_index));
+    // debug("end partial_word: %s", partial_word.c_str());
+    // if (partial_word.size() > 0) {
+    //     if (next_word_redirects_in) {
+    //         command.input_file = partial_word;
+    //         next_word_redirects_in = false;
+    //     } else if (next_word_redirects_out) {
+    //         command.output_file = partial_word;
+    //         next_word_redirects_out = false;
+    //     } else command.words.push_back(partial_word);
+    //     partial_word = string();
+    // }
+    if (command.words.size() > 0) pipeline.commands.push_back(command);
+    if (pipeline.commands.size() > 0) job.pipelines.push_back(pipeline);
 
     job.print();
     if (true) return job;
     //handle_found(loc[0], loc) -> switches to whichever function is appropriate to match
 
 
-    vector<string> pipeline_strs = StringUtil::Split(job_str, ";"); //TODO: fix, maybe escaped ('\")
+    // vector<string> pipeline_strs = StringUtil::Split(job_str, ";"); //TODO: fix, maybe escaped ('\")
 
 
-    for (string& pipeline_str : pipeline_strs) {
-        ParsedPipeline pipeline;
+    // for (string& pipeline_str : pipeline_strs) {
+    //     ParsedPipeline pipeline;
 
-        vector<string> command_strs = StringUtil::Split(pipeline_str, "|"); //TODO: fix, maybe escaped ('\")
-        for (string& command_str : command_strs) {
-            ParsedCommand command;
-            // debug("%s", command_str.c_str());
+    //     vector<string> command_strs = StringUtil::Split(pipeline_str, "|"); //TODO: fix, maybe escaped ('\")
+    //     for (string& command_str : command_strs) {
+    //         ParsedCommand command;
+    //         // debug("%s", command_str.c_str());
 
-            vector<string> split_command = StringUtil::Split(command_str, ">"); //TODO: fix, maybe escaped ('\")
-            command_str = split_command[0];
-            if (split_command.size() >= 2) {
-                for (int i = 1; i < split_command.size(); i++) {
-                    int start_pos = split_command[i].find_first_not_of(' ');
-                    int end_pos = split_command[i].find_first_of(' ', start_pos);
-                    command.output_file = split_command[i].substr(start_pos, end_pos);
-                    if (end_pos < split_command[i].size()) {
-                        command_str.push_back(' ');
-                        command_str.append(split_command[i].substr(end_pos));
-                    }
-                }
-            }
+    //         vector<string> split_command = StringUtil::Split(command_str, ">"); //TODO: fix, maybe escaped ('\")
+    //         command_str = split_command[0];
+    //         if (split_command.size() >= 2) {
+    //             for (int i = 1; i < split_command.size(); i++) {
+    //                 int start_pos = split_command[i].find_first_not_of(' ');
+    //                 int end_pos = split_command[i].find_first_of(' ', start_pos);
+    //                 command.output_file = split_command[i].substr(start_pos, end_pos);
+    //                 if (end_pos < split_command[i].size()) {
+    //                     command_str.push_back(' ');
+    //                     command_str.append(split_command[i].substr(end_pos));
+    //                 }
+    //             }
+    //         }
 
-            split_command = StringUtil::Split(command_str, "<"); //TODO: fix, maybe escaped ('\")
-            command_str = split_command[0];
-            if (split_command.size() >= 2) {
-                for (int i = 1; i < split_command.size(); i++) {
-                    int start_pos = split_command[i].find_first_not_of(' ');
-                    int end_pos = split_command[i].find_first_of(' ', start_pos);
-                    command.input_file = split_command[i].substr(start_pos, end_pos);
-                    if (end_pos < split_command[i].size()) {
-                        command_str.push_back(' ');
-                        command_str.append(split_command[i].substr(end_pos));
-                    }
-                }
-            }
+    //         split_command = StringUtil::Split(command_str, "<"); //TODO: fix, maybe escaped ('\")
+    //         command_str = split_command[0];
+    //         if (split_command.size() >= 2) {
+    //             for (int i = 1; i < split_command.size(); i++) {
+    //                 int start_pos = split_command[i].find_first_not_of(' ');
+    //                 int end_pos = split_command[i].find_first_of(' ', start_pos);
+    //                 command.input_file = split_command[i].substr(start_pos, end_pos);
+    //                 if (end_pos < split_command[i].size()) {
+    //                     command_str.push_back(' ');
+    //                     command_str.append(split_command[i].substr(end_pos));
+    //                 }
+    //             }
+    //         }
 
-            // TODO: handle multiple whitespaces in a row, different whitespace
-            //       types
-            // TODO: handle input and output file redirection
-            command.words = StringUtil::Split(command_str, " ");
+    //         // TODO: handle multiple whitespaces in a row, different whitespace
+    //         //       types
+    //         // TODO: handle input and output file redirection
+    //         command.words = StringUtil::Split(command_str, " ");
 
-            pipeline.commands.push_back(command);
-        }
+    //         pipeline.commands.push_back(command);
+    //     }
 
-        job.pipelines.push_back(pipeline);
-    }
+    //     job.pipelines.push_back(pipeline);
+    // }
 
-    return job;
+    // return job;
 }
 
 
-string JobParser::SwitchParsingTarget(char matched, string& message) {
+string JobParser::SwitchParsingTarget(char matched, string& job_str_copy) {
     switch(matched) {
-        case '\"': {
-            return ParseDoubleQuote(message);
-        }
-        case '\'': {
-            return ParseSingleQuote(message);
-        }
         case '`': {
-            return ParseBacktick(message);
+            return ParseBacktick(job_str_copy);
         }
         case '\\': {
-            return ParseBackslash(message);
+            return ParseBackslash(job_str_copy);
         }
         case '$': {
-            return ParseVariable(message);
+            return ParseVariable(job_str_copy);
         }
         default : {
             throw ParseException("Matched Unknown character");
         }
     }
 
-return string(message);
+// return string(message);
 }
 
 string JobParser::ParseDoubleQuote(string& job_str_copy) {
@@ -254,12 +205,20 @@ string JobParser::ParseDoubleQuote(string& job_str_copy) {
 string JobParser::ParseSingleQuote(string& job_str_copy) {
     // const char *loc = strpbrk(message, "\'");
     int match_index = strcspn(job_str_copy.c_str(), "\'");
-    debug("strcspn loc str:%s, char:\'", job_str_copy.c_str() + match_index);
     string quoted = job_str_copy.substr(0,match_index);
-    job_str_copy = job_str_copy.substr(match_index + 1);
+    debug("strcspn loc str:%s, char:\'", job_str_copy.c_str() + match_index);
+    if (match_index == job_str_copy.size()) {
+        job_str_copy = job_str_copy.substr(match_index + 1);
+        return quoted;
+    }
+    //TODO: this means unmatched ', so should do something different
+    //for now
     return quoted;
 
-
+    //TODO: to handle "" case, instead of using size of previous to determine if should
+    // append word, set some "valid word" thing that both operates when word is nonzero size
+    // AND when we matched string.  Then will continue to match if no space, but will also
+    // create word if necessary for "" or ''
 // return string(message);
 }
 

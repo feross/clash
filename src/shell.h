@@ -20,5 +20,6 @@ class Shell {
         void StartRepl();
     private:
         Environment env;
+        vector<Job> jobs_to_run;
 };
 

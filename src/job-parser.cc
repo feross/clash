@@ -363,6 +363,54 @@ string JobParser::SwitchParsingTarget(char matched, string& job_str_copy, Enviro
         }
     }
 string JobParser::ParseDoubleQuote(string& job_str_copy, Environment& env) {
+string JobParser::ParseBackslash(string& job_str_copy, char mode) {
+    string quoted = job_str_copy.substr(0,1);
+    if (mode == ' ') {
+        job_str_copy = job_str_copy.substr(1);
+        if (quoted != "\n") return quoted;
+        else {
+            if (job_str_copy.empty()) {
+                throw IncompleteParseException("Incomplete job given, no valid closing (/)");
+            } else {
+                return string();
+            }
+        }
+    }
+    //"$", "`" (backquote), double-quote, backslash, or newline;
+    if (mode == '\"') {
+        string valid_matches("$`\"\\\n");
+        if (valid_matches.find(quoted) == string::npos) {
+            string unmodified("\\");
+            // unmodified.append(quoted);
+            return unmodified;
+        }
+        job_str_copy = job_str_copy.substr(1);
+        return quoted;
+    }
+    //only backtick (inside, will parse as new job)
+    if (mode == '`') {
+        string valid_matches("`");
+        if (valid_matches.find(quoted) == string::npos) {
+            string unmodified("\\");
+            //newer TODO: bash actually seems to do the old behavior - e.g. echo `\\` is a complete command according to bash
+            // -> so should actually allow escaping of \ by \.
+            // unmodified.append(quoted); //TODO: WRONG to leave in, I think - e.g. double backslash, shouldn't consume second backslack
+            //TODO: confirm this was right to comment out (i.e. instead output single
+            // backslash & leave next char inside the job_str_copy in case it's special
+            // job_str_copy = job_str_copy.substr(1); //tested - bash does this, not what the spec says
+            return unmodified;
+        }
+        //TODO: bash actually behaves incorrectly/differently than ousterhout's code
+        //namely, bash will consider something like echo `echo \\` a complete command, even
+        //though according to spec that first backslashs should be ignored while scanning for end
+        //and the second one should cause the last ` not to match
+        job_str_copy = job_str_copy.substr(1);
+        return quoted;
+    }
+    throw IncompleteParseException("Unknown backslash mode");
+
+// return string(job_str_copy);
+}
 
 string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
     if (isdigit(job_str_copy[0])) {

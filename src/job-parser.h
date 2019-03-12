@@ -1,6 +1,7 @@
 #pragma once
 
 #include "string-util.h"
+#include "environment.h"
 
 using namespace std;
 
@@ -52,17 +53,6 @@ class IncompleteParseException : public exception {
         string message;
 };
 
-// class JobParser {
-//     public:
-//         static ParsedJob Parse(string& job_str);
-//     private:
-//         static string SwitchParsingTarget(char matched, string& loc);
-//         static string ParseDoubleQuote(string& job_str_copy);
-//         static string ParseSingleQuote(string& job_str_copy);
-//         static string ParseBackslash(string& job_str_copy, char mode = ' ');
-//         static string ParseVariable(string& job_str_copy);
-//         static string ParseBacktick(string& job_str_copy);
-//         static string ParseTilde(string& job_str_copy);
 class FatalParseException : public exception {
     public:
         FatalParseException(const string& message): message(message) {}
@@ -72,4 +62,16 @@ class FatalParseException : public exception {
         string message;
 };
 
-// };
+class JobParser {
+    public:
+        static ParsedJob Parse(string& job_str, Environment& env);
+    private:
+        static string SwitchParsingTarget(char matched, string& loc, Environment& env);
+        static string ParseDoubleQuote(string& job_str_copy, Environment& env);
+        static string ParseSingleQuote(string& job_str_copy);
+        static string ParseBackslash(string& job_str_copy, char mode = ' ');
+        static string ParseVariable(string& job_str_copy, Environment& env);
+        static string ParseBacktick(string& job_str_copy, Environment& env);
+        static string ParseTilde(string& job_str_copy, Environment& env);
+
+};

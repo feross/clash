@@ -343,13 +343,37 @@
 //     // "/User/jakemck: Is a directory" [unclear if failed b/c redirecting to dir, or because
 //     //has standalone directory])
 
+                  partial_word.append(ParseTilde(job_str_copy, env));
+                partial_word.append(ParseDoubleQuote(job_str_copy, env));
+                partial_word.append(ParseSingleQuote(job_str_copy));
+                partial_word.append(SwitchParsingTarget(matched, job_str_copy, env));
+string JobParser::SwitchParsingTarget(char matched, string& job_str_copy, Environment& env) {
+    switch(matched) {
+        case '`': {
+            return ParseBacktick(job_str_copy, env);
+        }
+        case '\\': {
+            return ParseBackslash(job_str_copy);
+        }
+        case '$': {
+            return ParseVariable(job_str_copy, env);
+        }
+        default : {
+            throw IncompleteParseException("Matched Unknown character");
+        }
+    }
+string JobParser::ParseDoubleQuote(string& job_str_copy, Environment& env) {
 
+string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
 //     debug("string:%s", job_str_copy.c_str());
 //     job_str_copy = job_str_copy.substr(1);
 //     debug("string:%s", job_str_copy.c_str());
 // return string(job_str_copy);
+string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
 
 // }
+string JobParser::ParseTilde(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
+}
 
 
 

@@ -21,6 +21,8 @@ class Environment {
 
         void export_variable(const string& name);
         vector<string> get_export_variable_strings();
+
+        string FindProgramPath(string& program_name);
     private:
         map<string, string> variables;
         set<string> export_variables;

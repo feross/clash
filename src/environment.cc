@@ -13,10 +13,7 @@ Environment::Environment() {
         export_variable(name);
     }
 
-    // Ensure PATH always has a reasonable default
-    if (!variables.count("PATH")) {
-        variables["PATH"] = DEFAULT_PATH_VAR;
-    }
+
 }
 
 const string& Environment::get_variable(const string& name) {
@@ -52,4 +49,26 @@ vector<string> Environment::get_export_variable_strings() {
         export_variable_strings.push_back(name + "=" + get_variable(name));
     }
     return export_variable_strings;
+}
+
+string Environment::FindProgramPath(string& program_name)  {
+    // If PATH is missing, use a reasonable default
+    string path = variables.count("PATH")
+        ? variables["PATH"]
+        : DEFAULT_PATH_VAR;
+
+    vector<string> search_paths = StringUtil::Split(path, ":");
+
+    for (string search_path : search_paths) {
+        vector<string> dirs = FileUtil::GetDirectoryEntries(search_path);
+    }
+
+    // If the program name contains a "/" character, then it is already a
+    // path to an exutable so use it as-is.
+    if (program_name.find("/") != string::npos) {
+        return path;
+    }
+
+    // TODO
+    return "";
 }

@@ -38,6 +38,39 @@ int FileUtil::OpenFile(string& filePath, int flags, mode_t mode) {
     return fd;
 }
 
+vector<string> FileUtil::GetDirectoryEntries(string& path) {
+    vector<string> entries;
+
+    DIR * dirp = opendir(path.c_str());
+    if (dirp == NULL) {
+        throw FileException("Unable to open directory " + path);
+    }
+
+    while (true) {
+        errno = 0;
+        dirent * dir = readdir(dirp);
+
+        // read error
+        if (dir == NULL && errno != 0) {
+            throw FileException(strerror(errno));
+        }
+
+        // end of stream
+        if (dir == NULL && errno == 0) {
+            break;
+        }
+
+        entries.push_back(dir->d_name);
+        debug("found directory: %s\n", dir->d_name);
+    }
+
+    if (closedir(dirp) != 0) {
+        throw FileException("Unable to close directory " + path);
+    }
+
+    return entries;
+}
+
 // TODO: this does not belong here
 pid_t FileUtil::CreateProcess() {
     pid_t pid = fork();
@@ -73,3 +106,4 @@ string FileUtil::GetUserHomeDirectory(string& user) {
     char * home_dir = pw->pw_dir;
     return string(home_dir);
 }
+

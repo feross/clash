@@ -146,7 +146,7 @@ void Command::RunProgram(int source, int sink) {
     }
     argv[words.size()] = NULL;
 
-    char * program_path = env.FindProgram(argv[0]);
+    // char * program_path = env.FindProgram(argv[0]);
 
     vector<string> variable_strings = env.get_export_variable_strings();
     char * envp[variable_strings.size() + 1];
@@ -155,7 +155,8 @@ void Command::RunProgram(int source, int sink) {
     }
     argv[variable_strings.size()] = NULL;
 
-    execve(argv[0], argv, envp);
+    // execve(argv[0], argv, envp);
+    execvp(argv[0], argv);
 
     fprintf(stderr, "-clash: %s: command not found\n", argv[0]);
     exit(0);

@@ -46,13 +46,16 @@ class FileUtil {
         static int OpenFile(string& filePath, int flags = O_RDONLY,
             mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
-        static vector<string> GetDirectoryEntries(string& path);
+        static vector<string> GetDirectoryEntries(const string& path);
         static vector<string> GetGlobMatches(const string& pattern);
-        static bool IsExecutableFile(string& path);
+        static bool IsExecutableFile(const string& path);
 
         // TODO: this does not belong here
         static pid_t CreateProcess();
         static void SetCurrentWorkingDirectory(const string& new_cwd);
         static string GetCurrentWorkingDirectory();
-        static string GetUserHomeDirectory(string& user);
+        static string GetUserHomeDirectory(const string& user);
+
+    private:
+        // static bool GlobMatch(string& pattern, string& name);
 };

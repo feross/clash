@@ -50,7 +50,7 @@ string FileUtil::DumpDescriptorIntoString(int descriptor) {
     return contents;
 }
 
-vector<string> FileUtil::GetDirectoryEntries(string& path) {
+vector<string> FileUtil::GetDirectoryEntries(const string& path) {
     vector<string> entries;
 
     DIR * dirp = opendir(path.c_str());
@@ -102,7 +102,77 @@ vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
     return matches;
 }
 
-bool FileUtil::IsExecutableFile(string& path) {
+// vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
+//     vector<string> matches;
+//     if (glob_pattern.length() == 0) {
+//         return matches;
+//     }
+
+//     vector<string> dir_patterns = StringUtil::Split(glob_pattern, "/");
+//     if (dir_patterns.front()[0] == "") {
+//         dir_patterns.front()[0] = "/";
+//     }
+
+//     vector<string> entries = GetDirectoryEntries(".");
+//     for (size_t i = 0; i < dir_patterns.size(); i++) {
+//         string current_dir = dir_patterns[i];
+//     }
+
+
+//     return matches;
+// }
+
+// Linear-time globbing algorithm based on https://research.swtch.com/glob
+// bool FileUtil::GlobMatch(string& pattern, string& name) {
+//     int px = 0;
+//     int nx = 0;
+//     int nextPx = 0;
+//     int nextNx = 0;
+//     while (px < pattern.length() || nx < name.length()) {
+//         if (px < pattern.length()) {
+//             char c = pattern[px];
+//             switch (c) {
+//                 case '?': {
+//                     // single-character wildcard
+//                     if (nx < name.length()) {
+//                         px++;
+//                         nx++;
+//                         continue;
+//                     }
+//                 }
+//                 case '*': {
+//                     // zero-or-more-character wildcard
+
+//                     // Try to match at nx. If that doesn't work out, restart at
+//                     // nx+1 next.
+//                     nextPx = px;
+//                     nextNx = nx + 1;
+//                     px++;
+//                     continue;
+//                 }
+//                 default: {
+//                     // ordinary character
+//                     if (nx < name.length() && name[nx] == c) {
+//                         px++;
+//                         nx++;
+//                         continue;
+//                     }
+//                 }
+//             }
+//         }
+//         // Mismatch. Maybe restart.
+//         if (0 < nextNx && nextNx <= name.length()) {
+//             px = nextPx;
+//             nx = nextNx;
+//             continue;
+//         }
+//         return false;
+//     }
+//     // Matched all of pattern to all of name. Success.
+//     return true;
+// }
+
+bool FileUtil::IsExecutableFile(const string& path) {
     return access(path.c_str(), X_OK) == 0;
 }
 
@@ -133,7 +203,7 @@ string FileUtil::GetCurrentWorkingDirectory() {
 }
 
 // TODO: Use this in the parser for username parsing
-string FileUtil::GetUserHomeDirectory(string& user) {
+string FileUtil::GetUserHomeDirectory(const string& user) {
     passwd * pw = getpwnam(user.c_str());
 
     if (pw == NULL) {

@@ -103,6 +103,13 @@ bool Command::RunBuiltin() {
         return true;
     }
 
+    // TODO: hack, remove once parser sends "set" correctly
+    if (program.find("=") != string::npos) {
+        vector<string> res = StringUtil::Split(program, "=");
+        env.set_variable(res[0], res[1]);
+        return true;
+    }
+
     if (program == "unset") {
         if (words.size() == 1) {
             printf("unset: not enough arguments\n");

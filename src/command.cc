@@ -6,6 +6,7 @@ Command::Command(ParsedCommand parsed_command, Environment& env) :
     words = parsed_command.words;
     input_file = parsed_command.input_file;
     output_file = parsed_command.output_file;
+    debug("command words: %d", words.size());
 }
 
 void Command::Run(int source, int sink) {
@@ -151,6 +152,7 @@ void Command::RunProgram(int source, int sink) {
     char * argv[words.size() + 1];
     for (size_t i = 0; i < words.size(); i++) {
         argv[i] = const_cast<char *>(words[i].c_str());
+        printf("storing %s\n", argv[i]);
     }
     argv[words.size()] = NULL;
 
@@ -160,7 +162,7 @@ void Command::RunProgram(int source, int sink) {
     for (size_t i = 0; i < variable_strings.size(); i++) {
         envp[i] = const_cast<char *>(variable_strings[i].c_str());
     }
-    argv[variable_strings.size()] = NULL;
+    envp[variable_strings.size()] = NULL;
 
     execve(argv[0], argv, envp);
     fprintf(stderr, "-clash: %s: permission denied\n", argv[0]);

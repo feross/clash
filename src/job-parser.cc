@@ -26,6 +26,8 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
         // debug("partial_word: %s", partial_word.c_str());
         // debug("new job_str_copy:%s", job_str_copy.c_str());
         // string endword_chars("\t\n ;|<>");
+
+        //word breaking 
         if (match_index == job_str_copy.size() ||
           string("\t\n ;|<>").find(job_str_copy[match_index]) != string::npos) {
             //word break
@@ -41,42 +43,58 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
                 quote_word = false;
             }
         }
+        //command breaking
+        if (match_index == job_str_copy.size()) {
+            //relies on short circuit to avoid code duplication
+            if (command.words.empty() && !pipeline.commands.empty()) {
+                throw IncompleteParseException("Incomplete job given, no command break");
+            }
+            pipeline.commands.push_back(command);
+            // command.clear();
+        } else if (string(";|").find(job_str_copy[match_index]) != string::npos) {
+            if (commands.words.empty()) {
+                throw SyntaxErrorParseException(job_str_copy[match_index]);
+            }
+            // technically code duplication, but the implementation that avoids
+            // this is significantly less clear.  Thoughts?
+            pipeline.commands.push_back(command);
+            command.clear();
+        } 
+        //redirected words (can't exit before, b/c \n is present)
+        if (next_word_redirects_in || next_word_redirects_out) {
+            if (match_index == job_str_copy.size() ||
+                string("\n;|<>").find(job_str_copy[match_index]) != string::npos) {
+                //relies on short circuit (though case where it
+                //comes up is impossible) Bad?
+                throw SyntaxErrorParseException(job_str_copy[match_index]);
+            }
+        }
+        //fully consumed string
         if (match_index == job_str_copy.size()) {
             debug("\nexitall %d iter: %d\n", match_index, iter);
             break;
         }
+
         char matched = job_str_copy[match_index];
-        if (next_word_redirects_in || next_word_redirects_out) {
-            if (string("\n;|<>").find(matched) != string::npos) {
-                throw SyntaxErrorParseException(matched);
-            }
-        }
         job_str_copy = job_str_copy.substr(match_index + 1);
 
         switch(matched) {
             case '\t':
             case ' ':
-            case '\n': {
+            case '\n':
+            case '|': {
                 debug("whitespace, prev_word:%s", partial_word.c_str());
                 continue;
             }
-            case ';':
-            case '|': { //TODO: doesn't work at end of line
-                if (command.words.empty()) {
-                    throw SyntaxErrorParseException(matched);
-                }
-                pipeline.commands.push_back(command);
-                command.clear();
+            case ';': { //TODO: doesn't work at end of line
                 //TODO: need to introduce a variable
                 // that tracks whether the last command ended with |
                 // otherwise can't distinguish echo good;
                 // "echo good;"" vs. "echo bad |"
                 // the latter should be fine, but must ask
                 // for more characters
-                if (matched == ';') {
-                    job.pipelines.push_back(pipeline);
-                    pipeline.clear();
-                }
+                job.pipelines.push_back(pipeline);
+                pipeline.clear();
                 continue;
             }
             case '<': {
@@ -131,7 +149,10 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
     //     } else command.words.push_back(partial_word);
     //     partial_word = string();
     // }
-    if (command.words.size() > 0) pipeline.commands.push_back(command);
+    // if (command.words.size() > 0) pipeline.commands.push_back(command);
+    // TODO: if command size is 0, and we have a previous entry in this pipeline
+    // the we must wait for more input
+    //command breaking already handled, but must add pipeline to jobs still
     if (pipeline.commands.size() > 0) job.pipelines.push_back(pipeline);
     job.print();
     if (true) return job;

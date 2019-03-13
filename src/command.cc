@@ -70,7 +70,6 @@ bool Command::RunBuiltin() {
     }
 
     if (program == "exit") {
-        // printf("exit\n");
         if (words.size() == 1) {
             exit(0);
         } else if (words.size() == 2) {

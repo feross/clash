@@ -12,6 +12,15 @@
 
 using namespace std;
 
+class ShellException : public exception {
+    public:
+        ShellException(const string& message): message(message) {}
+        ShellException(const char* message): message(message) {}
+        const char* what() const noexcept { return message.c_str(); }
+    private:
+        string message;
+};
+
 class Shell {
     public:
         bool ParseStringIntoJob(string& job_str);

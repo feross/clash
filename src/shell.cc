@@ -1,5 +1,7 @@
 #include "shell.h"
 
+// TODO: this should throw an exception that is handled by clash.cc and the printing
+// should happen there
 bool Shell::ParseStringIntoJob(string& job_str) {
     // TODO: splitting on newlines should be handled by the parser
     // vector<string> lines = StringUtil::Split(job_str, "\n");
@@ -61,8 +63,7 @@ void Shell::ParseFile(const string& file_path) {
     string job_str;
     ifstream file(file_path);
     if (!file.is_open()) {
-        printf("-clash: error while opening file %s", file_path.c_str());
-        return;
+        throw ShellException(file_path + ": No such file or directory");
     }
 
     string line;
@@ -71,8 +72,7 @@ void Shell::ParseFile(const string& file_path) {
     }
 
     if (file.bad()) {
-        printf("-clash: error while reading file %s", file_path.c_str());
-        return;
+        throw ShellException(file_path + ": Error reading file");
     }
 
     ParseStringIntoJob(job_str);

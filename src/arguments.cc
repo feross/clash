@@ -38,7 +38,7 @@ void Arguments::Parse(int argc, char* argv[]) {
             if (alias_to_name.count(alias)) {
                 name = alias_to_name[alias];
             } else {
-                throw ArgumentsException("Unexpected argument alias" + arg);
+                throw ArgumentsException(arg + " option was unexpected");
             }
         }
 
@@ -50,7 +50,7 @@ void Arguments::Parse(int argc, char* argv[]) {
                 // determine the argument value
                 i += 1;
                 if (i >= arguments.size()) {
-                    throw ArgumentsException("Argument " + arg + " missing value");
+                    throw ArgumentsException(arg + " option requires an argument");
                 }
                 string value = arguments[i];
                 if (int_args.count(name)) {
@@ -59,7 +59,7 @@ void Arguments::Parse(int argc, char* argv[]) {
                     string_args[name] = value;
                  }
             } else {
-                throw ArgumentsException("Unexpected argument " + arg);
+                throw ArgumentsException(arg + " option was unexpected");
             }
         } else {
             // Unnamed arguments have no dash prefix

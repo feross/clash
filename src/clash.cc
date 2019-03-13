@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
         args.Parse(argc, argv);
     } catch (ArgumentsException& err) {
         error("%s", err.what());
-        return EXIT_FAILURE;
+        return 2;
     }
 
     if (args.get_bool("quiet")) {

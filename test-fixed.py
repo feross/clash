@@ -573,7 +573,7 @@ class TestPipeline(unittest.TestCase):
 
     def test_run_set_status_variable(self):
         os.makedirs("__test")
-        self.assertEqual("0\n", run("/bin/true; /bin/echo $?"))
+        self.assertEqual("0\n", run("/usr/bin/true; /bin/echo $?"))
         self.assertEqual("44\n", run("/bin/bash -c \"exit 44\"; /bin/echo $?"))
 
 class TestVariables(unittest.TestCase):

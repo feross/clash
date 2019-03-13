@@ -1,5 +1,9 @@
 #include "shell.h"
 
+
+
+Shell::Shell(Environment& env) : env(env) {}
+
 // TODO: this should throw an exception that is handled by clash.cc and the printing
 // should happen there
 bool Shell::ParseStringIntoJob(string& job_str) {

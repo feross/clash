@@ -23,6 +23,7 @@ class ShellException : public exception {
 
 class Shell {
     public:
+        Shell(Environment& env);
         bool ParseStringIntoJob(string& job_str);
         bool ParseString(string& job_str);
 
@@ -31,7 +32,7 @@ class Shell {
         bool ParseFile(const string& file_path);
         int StartRepl();
     private:
-        Environment env;
+        Environment& env;
         JobParser job_parser;
         vector<Job> jobs_to_run;
 };

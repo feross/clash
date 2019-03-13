@@ -68,13 +68,14 @@ class Job {
          * Instance of the job parser; used to actually parse the string
          * entered by the user.
          */
-        // JobParser job_parser;
+        JobParser job_parser;
 
         /**
          * A job is composed of one or more pipelines, which are stored here
          * after the job string has been parsed.
          */
         vector<Pipeline> pipelines;
+        vector<ParsedPipeline> parsed_pipelines;
 
         Environment& env;
 };

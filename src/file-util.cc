@@ -53,7 +53,7 @@ string FileUtil::DumpDescriptorIntoString(int descriptor) {
 vector<string> FileUtil::GetDirectoryEntries(const string& path) {
     vector<string> entries;
 
-    DIR * dirp = opendir(path.c_str());
+    DIR * dirp = opendir(path == "" ? "." : path.c_str());
     if (dirp == NULL) {
         throw FileException("Unable to open directory " + path);
     }
@@ -73,7 +73,10 @@ vector<string> FileUtil::GetDirectoryEntries(const string& path) {
         }
 
         const char * entry = dir->d_name;
-        entries.push_back(entry);
+
+        if (strcmp(entry, ".") != 0 && strcmp(entry, "..") != 0) {
+            entries.push_back(entry);
+        }
     }
 
     if (closedir(dirp) != 0) {
@@ -83,97 +86,229 @@ vector<string> FileUtil::GetDirectoryEntries(const string& path) {
     return entries;
 }
 
-vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
-    glob_t glob_matches;
-    memset(&glob_matches, 0, sizeof(glob_matches));
-
-    int ret = glob(glob_pattern.c_str(), 0, NULL, &glob_matches);
-    if(ret != 0 && ret != GLOB_NOMATCH) {
-        globfree(&glob_matches);
-        throw FileException("glob failed with return value" + to_string(ret));
-    }
-
-    vector<string> matches;
-    for(size_t i = 0; i < glob_matches.gl_pathc; i++) {
-        matches.push_back(string(glob_matches.gl_pathv[i]));
-    }
-
-    globfree(&glob_matches);
-    return matches;
-}
-
 // vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
+//     glob_t glob_matches;
+//     memset(&glob_matches, 0, sizeof(glob_matches));
+
+//     int ret = glob(glob_pattern.c_str(), 0, NULL, &glob_matches);
+//     if(ret != 0 && ret != GLOB_NOMATCH) {
+//         globfree(&glob_matches);
+//         throw FileException("glob failed with return value" + to_string(ret));
+//     }
+
 //     vector<string> matches;
-//     if (glob_pattern.length() == 0) {
-//         return matches;
+//     for(size_t i = 0; i < glob_matches.gl_pathc; i++) {
+//         matches.push_back(string(glob_matches.gl_pathv[i]));
 //     }
 
-//     vector<string> dir_patterns = StringUtil::Split(glob_pattern, "/");
-//     if (dir_patterns.front()[0] == "") {
-//         dir_patterns.front()[0] = "/";
-//     }
-
-//     vector<string> entries = GetDirectoryEntries(".");
-//     for (size_t i = 0; i < dir_patterns.size(); i++) {
-//         string current_dir = dir_patterns[i];
-//     }
-
-
+//     globfree(&glob_matches);
 //     return matches;
 // }
 
-// Linear-time globbing algorithm based on https://research.swtch.com/glob
-// bool FileUtil::GlobMatch(string& pattern, string& name) {
-//     int px = 0;
-//     int nx = 0;
-//     int nextPx = 0;
-//     int nextNx = 0;
-//     while (px < pattern.length() || nx < name.length()) {
-//         if (px < pattern.length()) {
-//             char c = pattern[px];
-//             switch (c) {
-//                 case '?': {
-//                     // single-character wildcard
-//                     if (nx < name.length()) {
-//                         px++;
-//                         nx++;
-//                         continue;
-//                     }
-//                 }
-//                 case '*': {
-//                     // zero-or-more-character wildcard
+vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
+    debug("======================= GetGlobMatches(%s) =======================", glob_pattern.c_str());
+    vector<string> current_matches;
+    if (glob_pattern.length() == 0) {
+        return current_matches;
+    }
 
-//                     // Try to match at nx. If that doesn't work out, restart at
-//                     // nx+1 next.
-//                     nextPx = px;
-//                     nextNx = nx + 1;
-//                     px++;
-//                     continue;
-//                 }
-//                 default: {
-//                     // ordinary character
-//                     if (nx < name.length() && name[nx] == c) {
-//                         px++;
-//                         nx++;
-//                         continue;
-//                     }
-//                 }
-//             }
-//         }
-//         // Mismatch. Maybe restart.
-//         if (0 < nextNx && nextNx <= name.length()) {
-//             px = nextPx;
-//             nx = nextNx;
-//             continue;
-//         }
-//         return false;
-//     }
-//     // Matched all of pattern to all of name. Success.
-//     return true;
-// }
+    vector<string> pattern_segments = StringUtil::Split(glob_pattern, "/");
+    if (pattern_segments.front() == "") {
+        pattern_segments.erase(pattern_segments.begin());
+        current_matches.push_back("/");
+    } else {
+        current_matches.push_back("");
+    }
+
+    for (size_t i = 0; i < pattern_segments.size(); i++) {
+        string pattern_segment = pattern_segments[i];
+        debug("pattern_segment: %s", pattern_segment.c_str());
+
+        vector<string> next_matches;
+        for (string& current_match : current_matches) {
+            debug("current_match: %s", current_match.c_str());
+
+            vector<string> entries = GetDirectoryEntries(current_match);
+
+            for (string& entry : entries) {
+                // debug("entry: %s", entry.c_str());
+
+                if (GlobMatch(pattern_segment, entry)) {
+                    // debug("matched entry: %s", entry.c_str());
+                    // TODO: if not on last iteration, ensure that entry is a
+                    // directory, not a file
+                    string next_match;
+                    if (current_match == "") {
+                        next_match = entry;
+                    } else if (current_match == "/") {
+                        next_match = "/" + entry;
+                    } else {
+                        next_match = current_match + "/" + entry;
+                    }
+
+                    // Ensure that files are only added when examining the last
+                    // path segment. Otherwise, we skip them since they cannot
+                    // possibly match when there are further segments to examine
+                    // later.
+                    if (IsDirectory(next_match) || i == pattern_segments.size() - 1) {
+                        next_matches.push_back(next_match);
+                    }
+                }
+            }
+        }
+
+        current_matches = next_matches;
+    }
+
+    return current_matches;
+}
+
+// Method for making star matching run in linear time was inspired by this
+// blog post: https://research.swtch.com/glob
+bool FileUtil::GlobMatch(const string& pattern, const string& name) {
+    int px = 0;
+    int nx = 0;
+    int nextPx = 0;
+    int nextNx = 0;
+
+    vector<char> charClass;
+    int inCharClass = false;
+    bool inRange = false;
+    char rangeStart = '\0';
+    bool negateCharClass = false;
+
+    while (px < pattern.length() || nx < name.length()) {
+        if (px < pattern.length()) {
+            char c = pattern[px];
+            switch (c) {
+                case '?': {
+                    // single-character wildcard
+                    if (nx < name.length()) {
+                        px++;
+                        nx++;
+                        continue;
+                    }
+                    break;
+                }
+                case '*': {
+                    // zero-or-more-character wildcard
+
+                    // Try to match at nx. If that doesn't work out, restart at
+                    // nx+1 next.
+                    nextPx = px;
+                    nextNx = nx + 1;
+                    px++;
+                    continue;
+                }
+                case '[': {
+                    if (inCharClass) {
+                        // Appears within character class, treat as literal
+                        goto default_case;
+                    }
+                    inCharClass = true;
+                    px++;
+                    continue;
+                }
+                case ']': {
+                    if (!inCharClass) {
+                        // Appears outside of character class, treat as literal
+                        goto default_case;
+                    }
+                    if (inRange) {
+                        // TODO?
+                    }
+                    if (nx < name.length()) {
+                        bool matched = find(charClass.begin(), charClass.end(),
+                            name[nx]) != charClass.end();
+                        if (matched != negateCharClass) {
+                            px++;
+                            nx++;
+                            charClass.clear();
+                            inCharClass = false;
+                            negateCharClass = false;
+                            continue;
+                        }
+                    }
+                    break;
+                }
+                case '-': {
+                    if (!inCharClass) {
+                        // Appears outside of character class, treat as literal
+                        goto default_case;
+                    }
+                    inRange = true;
+                    rangeStart = charClass.back();
+                    charClass.pop_back();
+                    px++;
+                    continue;
+                }
+                case '^': {
+                    if (!inCharClass) {
+                        // Appears outside of character class, treat as literal
+                        goto default_case;
+                    }
+                    if (charClass.size() > 0) {
+                        // Not first character of the character class (i.e. [a^b])
+                        // so treat as literal
+                        goto default_case;
+                    }
+                    negateCharClass = true;
+                    px++;
+                    continue;
+                }
+                default:
+                default_case: {
+                    if (inRange) {
+                        char rangeEnd = c;
+                        for (char ch = rangeStart; ch <= rangeEnd; ch++) {
+                            charClass.push_back(ch);
+                        }
+                        px++;
+                        inRange = false;
+                        continue;
+                    }
+                    if (inCharClass) {
+                        charClass.push_back(c);
+                        px++;
+                        continue;
+                    }
+
+                    // ordinary character
+                    if (nx < name.length() && name[nx] == c) {
+                        px++;
+                        nx++;
+                        continue;
+                    }
+                    break;
+                }
+            }
+        }
+        // Mismatch. Maybe restart.
+        if (0 < nextNx && nextNx <= name.length()) {
+            px = nextPx;
+            nx = nextNx;
+            charClass.clear();
+            inCharClass = false;
+            inRange = false;
+            negateCharClass = false;
+            continue;
+        }
+        return false;
+    }
+    // Matched all of pattern to all of name. Success.
+    return true;
+}
 
 bool FileUtil::IsExecutableFile(const string& path) {
     return access(path.c_str(), X_OK) == 0;
+}
+
+bool FileUtil::IsDirectory(const string& path) {
+    struct stat stat_result;
+    if (stat(path.c_str(), &stat_result) != 0) {
+        throw FileException(strerror(errno));
+    }
+    return stat_result.st_mode & S_IFDIR;
 }
 
 // TODO: this does not belong here
@@ -186,9 +321,6 @@ pid_t FileUtil::CreateProcess() {
 }
 
 void FileUtil::SetCurrentWorkingDirectory(const string& new_cwd) {
-    // if (new_cwd.empty()) {
-    //     new_cwd = GetUserHomeDirectory()
-    // } //TODO: get current user directory if empty
     if (chdir(new_cwd.c_str()) == -1) {
         throw FileException(new_cwd + ": No such file or directory");
     }
@@ -202,7 +334,6 @@ string FileUtil::GetCurrentWorkingDirectory() {
     return string(cwd);
 }
 
-// TODO: Use this in the parser for username parsing
 string FileUtil::GetUserHomeDirectory(const string& user) {
     passwd * pw = getpwnam(user.c_str());
 

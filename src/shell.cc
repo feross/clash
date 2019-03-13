@@ -30,14 +30,29 @@ bool Shell::ParseStringIntoJob(string& job_str) {
     //UNLESS someone uses this parse mutliple times without running the parsed jobs
     try {
         if (job_parser.IsPartialJob(job_str, env)) {
-            return false;
+            return false; // incomplete job
         } else {
             ParsedJob parsed_job = job_parser.Parse(job_str, env);
             jobs_to_run.push_back(Job(parsed_job, env));
         }
     } catch (exception& e) {
         printf("-clash: %s\n", e.what());
-        return true; //did parse, into nothing (was invalid)
+        return true; // did parse, into nothing (was invalid)
+    }
+    return true; //completely & validly parsed
+}
+
+bool Shell::ParseString(string& job_str) {
+    try {
+        if (job_parser.IsPartialJob(job_str, env)) {
+            return false; // treat partial jobs as failure
+        } else {
+            ParsedJob parsed_job = job_parser.Parse(job_str, env);
+            jobs_to_run.push_back(Job(parsed_job, env));
+        }
+    } catch (exception& e) {
+        printf("-clash: %s\n", e.what());
+        return false; //did parse, into nothing (was invalid)
     }
     return true; //completely & validly parsed
 }
@@ -47,23 +62,28 @@ bool Shell::ParseStringIntoJob(string& job_str) {
 //     ParseStringIntoJobs(job_string);
 // }
 
-void Shell::RunJobsAndWait() {
+int Shell::RunJobsAndWait() {
     for (Job& job : jobs_to_run) {
         try {
             debug("%s", job.ToString().c_str());
             job.RunAndWait();
         } catch (exception& err) {
             printf("-clash: %s\n", err.what());
+            jobs_to_run.clear();
+            return -1;
         }
     }
     jobs_to_run.clear();
+
+    return 0;
 }
 
-void Shell::ParseFile(const string& file_path) {
+bool Shell::ParseFile(const string& file_path) {
     string job_str;
     ifstream file(file_path);
     if (!file.is_open()) {
-        throw ShellException(file_path + ": No such file or directory");
+        printf("-clash: %s: No such file or directory\n", file_path.c_str());
+        return false;
     }
 
     string line;
@@ -72,13 +92,14 @@ void Shell::ParseFile(const string& file_path) {
     }
 
     if (file.bad()) {
-        throw ShellException(file_path + ": Error reading file");
+        printf("-clash: %s: Error reading file\n", file_path.c_str());
+        return false;
     }
 
-    ParseStringIntoJob(job_str);
+    return ParseString(job_str);
 }
 
-void Shell::StartRepl() {
+int Shell::StartRepl() {
     // for (string& match : FileUtil::GetGlobMatches("src/[a-c]lash.cc")) {
     //     debug("match: %s", match.c_str());
     // }
@@ -110,6 +131,8 @@ void Shell::StartRepl() {
 
     if (!remaining_job_str.empty()) {
         printf("-clash: syntax error: unexpected end of file\n");
+        return 2;
     }
+    return atoi(env.get_variable("?").c_str());
 }
 

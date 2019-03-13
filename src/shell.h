@@ -24,12 +24,12 @@ class ShellException : public exception {
 class Shell {
     public:
         bool ParseStringIntoJob(string& job_str);
-        // void ParseStringIntoJobs(const char * job_str);
+        bool ParseString(string& job_str);
 
-        void RunJobsAndWait();
+        int RunJobsAndWait();
 
-        void ParseFile(const string& file_path);
-        void StartRepl();
+        bool ParseFile(const string& file_path);
+        int StartRepl();
     private:
         Environment env;
         JobParser job_parser;

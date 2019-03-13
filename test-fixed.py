@@ -489,6 +489,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual("abc\n", readFile("__test/out1"))
         self.assertEqual("def\n", readFile("__test/out2"))
 
+    # TODO: parser needs variables implemented
     def test_breakAndAppend(self):
         self.assertEqual("Word 1: .abc\nWord 2: def\nWord 3: x\nWord 4: y.\n",
                 run("x='abc def\tx\ny'; ./words.py .$x."))

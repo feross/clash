@@ -38,32 +38,20 @@ int main(int argc, char* argv[]) {
 
     string command = args.get_string("command");
     if (!command.empty()) {
-        try {
-            // TODO: This doesn't actually throw right now, I think. Make it
-            // do so since we want to handle printing the error message and
-            // setting the status code here
-            shell.ParseStringIntoJob(command);
-            shell.RunJobsAndWait();
-        } catch (exception& err) {
-            printf("-clash: %s\n", err.what());
-            return EXIT_FAILURE;
+        if (!shell.ParseString(command)) {
+            return -1;
         }
-        return EXIT_SUCCESS;
+        return shell.RunJobsAndWait();
     }
 
     vector<string> unnamed_args = args.get_unnamed();
     if (unnamed_args.size() > 0) {
         const string& file_path = unnamed_args[0];
-        try {
-            shell.ParseFile(file_path);
-            shell.RunJobsAndWait();
-        } catch (exception& err) {
-            printf("-clash: %s\n", err.what());
+        if (!shell.ParseFile(file_path)) {
             return 127;
         }
-        return EXIT_SUCCESS;
+        return shell.RunJobsAndWait();
     }
 
-    shell.StartRepl();
-    return EXIT_SUCCESS;
+    return shell.StartRepl();
 }

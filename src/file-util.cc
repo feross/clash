@@ -1,5 +1,6 @@
 #include "file-util.h"
 
+
 void FileUtil::CreatePipe(int fds[2]) {
     #ifdef _GNU_SOURCE
         if (pipe2(fds, O_CLOEXEC) == -1) {
@@ -38,12 +39,16 @@ int FileUtil::OpenFile(string& filePath, int flags, mode_t mode) {
     return fd;
 }
 
-// string FileUtil::DumpDescriptorIntoString(int descriptor) {
-//     string contents();
-
-
-//     return contents;
-// }
+string FileUtil::DumpDescriptorIntoString(int descriptor) {
+    string contents = string();
+    char buf[1024 + 1];
+    int read_bytes;
+    while ((read_bytes = read(descriptor, buf, 1024)) != 0) {
+        buf[read_bytes] = '\0';
+        contents.append(buf);
+    }
+    return contents;
+}
 
 vector<string> FileUtil::GetDirectoryEntries(string& path) {
     vector<string> entries;

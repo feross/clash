@@ -15,8 +15,10 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
     bool next_word_redirects_out = false;
     bool next_word_redirects_in = false;
     bool quote_word = false;
+    int iter = 0;
     //TODO: probably switch to "find_first_of" and "find_first_not_of" which do same thing I think
     while(true) {
+        iter++;
         int match_index = strcspn(job_str_copy.c_str(), " \t\n;|<>~$'`\"\\");
         // debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
         // debug("partial_word: %s", partial_word.c_str());
@@ -39,7 +41,10 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
                 quote_word = false;
             }
         }
-        if (match_index == job_str_copy.size()) break;
+        if (match_index == job_str_copy.size()) {
+            debug("\nexitall %d iter: %d\n", match_index, iter);
+            break;
+        }
         char matched = job_str_copy[match_index];
         if (next_word_redirects_in || next_word_redirects_out) {
             if (string("\n;|<>").find(matched) != string::npos) {
@@ -56,7 +61,7 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
                 continue;
             }
             case ';':
-            case '|': {
+            case '|': { //TODO: doesn't work at end of line
                 if (command.words.empty()) {
                     throw SyntaxErrorParseException(matched);
                 }
@@ -341,18 +346,18 @@ string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO
         quoted.append(job_str_copy.substr(0,match_index));
         job_str_copy = job_str_copy.substr(match_index + 1);
         if (matched == '`') {
-            string fake_return_str("COMMAND:[");
-            fake_return_str.append(quoted);
-            fake_return_str.append("]");
-
+            string command_output_str;
             try {
                 int fds[2];
                 FileUtil::CreatePipe(fds);
                 int read = fds[0];
-                int write = STDOUT_FILENO; //fds[1];
-                Job(quoted, env).RunAndWait(sink = write);  //TODO redirect this to put inside our string
+                int write = fds[1];
+                Job(quoted, env).RunAndWait(STDIN_FILENO, write);  //TODO redirect this to put inside our string
+                // Job(quoted, env).RunAndWait(STDIN_FILENO, STDOUT_FILENO);  //TODO redirect this to put inside our string
                 FileUtil::CloseDescriptor(write);
+                command_output_str = FileUtil::DumpDescriptorIntoString(read);
                 FileUtil::CloseDescriptor(read);
+
             } catch (IncompleteParseException& ipe) {
                 //TODO: probably should probably define more different errors for each
                 string subcommand_err_message("command substitution: ");
@@ -365,9 +370,22 @@ string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO
                 subcommand_err_message.append(fpe.what());
                 throw FatalParseException(subcommand_err_message);
             }
-            int extra_space = fake_return_str.size();
-            job_str_copy.reserve(job_str_copy.capacity() + extra_space);
-            job_str_copy.insert(0, fake_return_str);
+            // int extra_space = command_output_str.size();
+            // printf("size of zdstroutput %lu %s\n", job_str_copy.size(), command_output_str.c_str());
+            // job_str_copy.reserve(job_str_copy.capacity() + extra_space);
+            // job_str_copy.insert(0, command_output_str);
+            // job_str_copy = command_output_str + job_str_copy;
+            // char *REMOVE = (char *)malloc(command_output_str.size() + job_str_copy.size() + 2);
+            // memcpy(REMOVE, command_output_str.c_str(), command_output_str.size());
+            // memcpy(REMOVE + command_output_str.size(), job_str_copy.c_str(), job_str_copy.size());
+            // job_str_copy = REMOVE;
+
+            job_str_copy = command_output_str + job_str_copy;
+            debug("new string:%s\n", job_str_copy.c_str());
+            // printf("size of nono %lu\n", job_str_copy.size());
+            // printf("jobstr: %s\n\n", job_str_copy.c_str());
+            //TODO: bash DOESN'T actually reparse from scratch, so we shouldn't
+            //do this here
             return string();
         } else {
             quoted.append(ParseBackslash(job_str_copy, '`'));

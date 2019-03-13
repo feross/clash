@@ -33,6 +33,7 @@ class FileUtil {
         static void CreatePipe(int fds[2]);
         static void CloseDescriptor(int fd);
         static void DuplicateDescriptor(int new_fd, int old_fd);
+        static string DumpDescriptorIntoString(int descriptor);
 
         /**
          * TODO

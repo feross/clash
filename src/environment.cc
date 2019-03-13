@@ -13,7 +13,7 @@ Environment::Environment() {
         export_variable(name);
     }
 
-
+    PopulatePathCache();
 }
 
 const string& Environment::get_variable(const string& name) {
@@ -28,13 +28,17 @@ const string& Environment::get_variable(const string& name) {
 
 void Environment::set_variable(const string& name, const string& value) {
     variables[name] = value;
-    // debug("set variable '%s' to '%s'", name.c_str(), value.c_str());
+    if (name == "PATH") {
+        PopulatePathCache();
+    }
 }
 
 void Environment::unset_variable(const string& name) {
     variables.erase(name);
     export_variables.erase(name);
-    debug("unset variable '%s'", name.c_str());
+    if (name == "PATH") {
+        PopulatePathCache();
+    }
 }
 
 void Environment::export_variable(const string& name) {
@@ -59,6 +63,11 @@ string Environment::FindProgramPath(string& program_name)  {
     // path to an exutable so use it as-is.
     if (program_name.find("/") != string::npos) {
         return program_name;
+    }
+
+    // Fast path. If the program name is in the cache, return it.
+    if (path_cache.count(program_name)) {
+        return path_cache[program_name];
     }
 
     string first_program_path;
@@ -90,4 +99,26 @@ string Environment::FindProgramPath(string& program_name)  {
 
     // May return empty string, indicating no file was matched
     return first_program_path;
+}
+
+void Environment::PopulatePathCache() {
+    path_cache.clear();
+
+    string path = variables.count("PATH")
+        ? variables["PATH"]
+        : DEFAULT_PATH_VAR;
+
+    vector<string> search_paths = StringUtil::Split(path, ":");
+
+    for (string search_path : search_paths) {
+        vector<string> entries = FileUtil::GetDirectoryEntries(search_path);
+        for (string& entry : entries) {
+            if (!path_cache.count(entry)) {
+                // Earlier path entries take priority over later ones, so
+                // never overwrite a cache entry.
+                string program_path = search_path + "/" + entry;
+                path_cache[entry] = program_path;
+            }
+        }
+    }
 }

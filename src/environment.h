@@ -15,6 +15,7 @@ const string DEFAULT_PATH_VAR =
 class Environment {
     public:
         Environment();
+
         const string& get_variable(const string& name);
         void set_variable(const string& name, const string& value);
         void unset_variable(const string& name);
@@ -24,6 +25,8 @@ class Environment {
 
         string FindProgramPath(string& program_name);
     private:
+        void PopulatePathCache();
         map<string, string> variables;
         set<string> export_variables;
+        map<string, string> path_cache;
 };

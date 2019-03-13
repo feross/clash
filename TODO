@@ -1,7 +1,7 @@
 Feross Todo:
 
 - If pipeline has one or more built-ins and one or more commands, just run the commands
-- Command lookup cache
+- Long commands break
 - File path star expansion
 
 

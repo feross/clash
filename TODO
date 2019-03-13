@@ -44,10 +44,10 @@ have a way to store arbitrary number of jobs + where the words should be inserte
 could be inside of a word
 ---> additionally, we need some method to parse words (& *-style expansions) only, from the output of these commands.  Decompose out from Job Parser, probably
 ----> this ALSO applies to output from variables
-- cleanup around job_parser, and handling a few edge cases better/more elegantly if possible.
 - path expansions in general, i.e. *,?,[]
 - exit status
 - more error handling in general
+- cleanup around job_parser, and handling a few edge cases better/more elegantly if possible.
 ---> A few particular errors in job-parser (e.g. endline in |, several easy ways to fix but may add state or redundant code...)
 
 
@@ -56,5 +56,31 @@ Specific argument re: | issue:
 At final end of line, if we had a previous job... we CAN'T know if it .... wait
 WRONG: we can.  If the previous command ENDED, it will have pushed itself onto the stack.  The only way it could have ended are | and ;.  If it was ;, then we wouldn't be in the same pipeline.  Therefore, if we are an empty command & in this same pipeline, we require more input.
 
+
+
+ALTERNATE IDEA I LIKE re: not executing commands multiple times.
+JUST HAVE A "CAN PARSE" method that checks if we can parse, and actually just
+calls the existing function with a bool that indicates whether we should
+try to run inner commands or not.  If we successfully parse the full thing,
+then we return true & they'll run the command.  Else we throw to outer method,
+which will catch & return false.
+This way, only runs at end, because we force them to give us a complete command.
+AND can still work this into exposing a single function
+
+And actually, running inner commands IS part of parsing BECAUSE we parse the outputs
+from those commands
+(issues:
+- inner commands may not be valid... but we can actually solve this using the
+same idea - if we're "can parse"-ing, we just "can-parse" check the inner job
+- both inner commands & outer commands have to be valid, but then they can "interact" in final output,
+resulting in maybe incorrect behavior (two valid commands may combine to an invalid command?)
+->>> solution exists here too: before running, do command replacements, and check for valid
+syntax of full output (CanParse again), if no longer valid we KNOW was command substitution fault,
+so can throw the appropriate error & prepend with "command substitution:")
+
+This results in slightly different behavior, but technically matches
+the space and results in MUCH cleaner code IMO.
+(I found that trying to do the 'track which words to inject on, then go back & inject them' really
+broke the whole decomp we had re: scanning the words)
 
 

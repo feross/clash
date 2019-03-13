@@ -97,16 +97,18 @@ pid_t FileUtil::CreateProcess() {
 }
 
 void FileUtil::SetCurrentWorkingDirectory(const string& new_cwd) {
+    // if (new_cwd.empty()) {
+    //     new_cwd = GetUserHomeDirectory()
+    // } //TODO: get current user directory if empty
     if (chdir(new_cwd.c_str()) == -1) {
-        throw FileException("Unable to set current working directory " +
-            new_cwd);
+        throw FileException(new_cwd + ": No such file or directory");
     }
 }
 
 string FileUtil::GetCurrentWorkingDirectory() {
     char cwd[PATH_MAX];
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        throw FileException("Unable to get current working directory");
+        throw FileException(cwd + string(": No such file or directory"));
     }
     return string(cwd);
 }

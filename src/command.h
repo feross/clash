@@ -23,6 +23,7 @@ class Command {
         bool RunBuiltin();
         void RunProgram(int source, int sink);
 
+        // vector<struct InjectedWord> injected_words;
         vector<string> words;
         string input_file;
         string output_file;

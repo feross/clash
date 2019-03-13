@@ -10,6 +10,12 @@ Command::Command(ParsedCommand parsed_command, Environment& env) :
 }
 
 void Command::Run(int source, int sink) {
+    //TODO: run any injected jobs
+    // before doing any of this
+    //for (struct InjectedWord& iword : injected_words) {
+    //    //RUN & INJECT
+    //    //Construct normal "words" using output
+    //}
     bool isBuiltin = RunBuiltin();
     if (!isBuiltin) {
         RunProgram(source, sink);
@@ -23,7 +29,7 @@ void Command::Wait() {
 
 string Command::ToString() {
     string result = "Command:";
-    for (string& word : words) {
+    for (string word : words) {
         result += " " + word;
     }
     if (!input_file.empty()) {
@@ -60,7 +66,7 @@ bool Command::RunBuiltin() {
     }
 
     if (program == "exit") {
-        printf("exit\n");
+        // printf("exit\n");
         if (words.size() == 1) {
             exit(0);
         } else if (words.size() == 2) {
@@ -152,7 +158,7 @@ void Command::RunProgram(int source, int sink) {
     char * argv[words.size() + 1];
     for (size_t i = 0; i < words.size(); i++) {
         argv[i] = const_cast<char *>(words[i].c_str());
-        printf("storing %s\n", argv[i]);
+        // printf("storing %s\n", argv[i]);
     }
     argv[words.size()] = NULL;
 

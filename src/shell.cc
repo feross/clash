@@ -1,6 +1,6 @@
 #include "shell.h"
 
-bool Shell::ParseStringIntoJobs(string& job_str) {
+bool Shell::ParseStringIntoJob(string& job_str) {
     // TODO: splitting on newlines should be handled by the parser
     // vector<string> lines = StringUtil::Split(job_str, "\n");
     // for (string& line : lines) {
@@ -27,18 +27,17 @@ bool Shell::ParseStringIntoJobs(string& job_str) {
     //TODO: I think b/c we only parse completed commands, there can only be one job
     //UNLESS someone uses this parse mutliple times without running the parsed jobs
     try {
-        // printf("char end:%c:htis", job_str[job_str.size() -1]);
-        jobs_to_run.push_back(Job(job_str, env));
-    } catch (IncompleteParseException& ipe) {
-        //incomplete job given, need more lines
-        // printf("\nFAILED PARSING\n");
-        return false;
-    } catch (FatalParseException& fpe) {
-        printf("-clash: %s\n", fpe.what());
-        job_str = string();
-        return true;
+        if (job_parser.IsPartialJob(job_str, env)) {
+            return false;
+        } else {
+            ParsedJob parsed_job = job_parser.Parse(job_str, env);
+            jobs_to_run.push_back(Job(parsed_job, env));
+        }
+    } catch (exception& e) {
+        printf("-clash: %s\n", e.what());
+        return true; //did parse, into nothing (was invalid)
     }
-    return true; //completely parsed
+    return true; //completely & validly parsed
 }
 
 // void Shell::ParseStringIntoJobs(const char * job_str) {
@@ -76,7 +75,7 @@ void Shell::ParseFile(const string& file_path) {
         return;
     }
 
-    ParseStringIntoJobs(job_str);
+    ParseStringIntoJob(job_str);
 }
 
 void Shell::StartRepl() {
@@ -99,8 +98,7 @@ void Shell::StartRepl() {
         free(line);
 
         // printf("str:%s\n", remaining_job_str.c_str());
-
-        if (ParseStringIntoJobs(remaining_job_str)) {
+        if (ParseStringIntoJob(remaining_job_str)) {
             RunJobsAndWait();
             // TODO: make this string cleared in a consistent place
             remaining_job_str = string();

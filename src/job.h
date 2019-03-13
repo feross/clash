@@ -38,7 +38,7 @@ class Job {
          * @param job_str The line (or lines) of text entered on the terminal
          *                by the user.
          */
-        Job(string& job_str, Environment& env);
+        Job(ParsedJob& job, Environment& env);
         // Job(char * job_str, Environment& env) :
         //     Job(string(job_str), env) {};
 
@@ -68,7 +68,7 @@ class Job {
          * Instance of the job parser; used to actually parse the string
          * entered by the user.
          */
-        JobParser job_parser;
+        // JobParser job_parser;
 
         /**
          * A job is composed of one or more pipelines, which are stored here

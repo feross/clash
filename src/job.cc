@@ -1,8 +1,6 @@
 #include "job.h"
 
-Job::Job(string& job_str, Environment& env) :
-    original_job_str(job_str), env(env) {
-    ParsedJob parsed_job = job_parser.Parse(job_str, env);
+Job::Job(ParsedJob& parsed_job, Environment& env) : env(env) {
 
     for (ParsedPipeline& parsed_pipeline : parsed_job.pipelines) {
         vector<Command> commands;

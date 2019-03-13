@@ -5,15 +5,34 @@
 
 using namespace std;
 
+
+// struct JobStringsToInject {
+//     string raw_job_str;
+//     int pos_word;
+//     bool quote_word;
+// };
+
+//TODO: decide if this is best
+// really, this is where the subjob lives - anywhere else would
+// be "living" on a higher level than actually is true internally
+// struct InjectedWord {
+//     string word;
+//     vector<struct JobStringsToInject> subjobs;
+//     void clear() {
+//         subjobs.clear();
+//     }
+// };
+
 struct ParsedCommand {
+    // vector<struct InjectedWord> words;
     vector<string> words;
     string input_file;
     string output_file;
-      void clear() {
+    void clear() {
         words.clear();
         input_file.clear();
         output_file.clear();
-      };
+    };
 };
 
 struct ParsedPipeline {
@@ -84,14 +103,25 @@ class SyntaxErrorParseException : public FatalParseException {
 
 class JobParser {
     public:
+        static bool IsPartialJob(string& job_str, Environment& env);
+        // Can only parse complete commands
+        // behavior not defined if parse incompelte commands
+        // (will likely just throw, and maybe run subcommands)
+        //COMMENT: if called, will attempt to parse - including any command
+        // substitutions that might be necessary to do that parsing.  This
+        // may have side effects, so you should call IsPartialJob first to
+        // avoid executing command substitutions within partial commands
         static ParsedJob Parse(string& job_str, Environment& env);
     private:
+        static ParsedJob Parse(string& job_str, Environment& env, bool should_execute);
         static string SwitchParsingTarget(char matched, string& loc, Environment& env);
-        static string ParseDoubleQuote(string& job_str_copy, Environment& env);
+        static string ParseDoubleQuote(string& job_str_copy, Environment& env,
+            bool should_execute);
         static string ParseSingleQuote(string& job_str_copy);
         static string ParseBackslash(string& job_str_copy, char mode = ' ');
         static string ParseVariable(string& job_str_copy, Environment& env);
-        static string ParseBacktick(string& job_str_copy, Environment& env);
+        static string ParseBacktick(string& job_str_copy, Environment& env,
+            bool should_execute);
         static string ParseTilde(string& job_str_copy, Environment& env);
 
 };

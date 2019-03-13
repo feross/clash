@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 
     string command = args.get_string("command");
     if (!command.empty()) {
-        shell.ParseStringIntoJobs(command);
+        shell.ParseStringIntoJob(command);
         shell.RunJobsAndWait();
         return EXIT_SUCCESS;
     }

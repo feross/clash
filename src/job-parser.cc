@@ -4,34 +4,51 @@
 #include <cstring>
 #include <cctype>
 
+bool JobParser::IsPartialJob(string& job_str, Environment& env) {
+    try {
+        Parse(job_str, env, false);
+    } catch (IncompleteParseException& ipe) {
+        //incomplete job given, need more lines
+        return true;
+    } //intentionally allow fatal errors through
+    return false;
+}
+
 ParsedJob JobParser::Parse(string& job_str, Environment& env) {
+    return Parse(job_str, env, true);
+}
+
+ParsedJob JobParser::Parse(string& job_str, Environment& env, bool should_execute) {
     string job_str_copy(job_str);
+    // const char* job_str_start = job_str_copy.c_str();
+    // string& job_str_moved = job_str_copy;
+    // job_str_copy = job_str_copy.substr(3);
+    // printf("moved:%s:\n", job_str_moved.c_str());
+    // printf("copy :%s:\n", job_str_copy.c_str());
+    // exit(0);
     ParsedCommand command;
     ParsedPipeline pipeline;
     ParsedJob job;
-    // printf("job str:%s", job_str_copy.c_str());
-    // int match_index;
+
+    //TODO: could just rebuild command out here, i.e. every time we're about to
+    //discard something, or returned a word, build string from that.
+
+    // InjectedWord iword;
+
     string partial_word = string();
     bool next_word_redirects_out = false;
     bool next_word_redirects_in = false;
     bool quote_word = false;
-    int iter = 0;
     //TODO: probably switch to "find_first_of" and "find_first_not_of" which do same thing I think
     while(true) {
-        iter++;
         int match_index = strcspn(job_str_copy.c_str(), " \t\n;|<>~$'`\"\\");
-        // debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
-        // debug("partial_word: %s", partial_word.c_str());
         if (match_index != 0) partial_word.append(job_str_copy.substr(0,match_index));
-        // debug("partial_word: %s", partial_word.c_str());
-        // debug("new job_str_copy:%s", job_str_copy.c_str());
-        // string endword_chars("\t\n ;|<>");
 
         //word breaking 
         if (match_index == job_str_copy.size() ||
           string("\t\n ;|<>").find(job_str_copy[match_index]) != string::npos) {
-            //word break
-            if (partial_word.size() > 0 || quote_word) { //TODO: change to var, so works with "" words
+            if (partial_word.size() > 0 || quote_word) { //word exists
+
                 if (next_word_redirects_in) {
                     command.input_file = partial_word;
                     next_word_redirects_in = false;
@@ -43,41 +60,38 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
                 quote_word = false;
             }
         }
+
         //command breaking
         if (match_index == job_str_copy.size()) {
-            //relies on short circuit to avoid code duplication
             if (command.words.empty() && !pipeline.commands.empty()) {
                 throw IncompleteParseException("Incomplete job given, no command break");
             }
-            pipeline.commands.push_back(command);
-            // command.clear();
+            if (!command.words.empty()) pipeline.commands.push_back(command);
+        // technically code duplication, but the implementation that avoids
+        // this is significantly less clear.  Thoughts?
         } else if (string(";|").find(job_str_copy[match_index]) != string::npos) {
             if (command.words.empty()) {
                 throw SyntaxErrorParseException(job_str_copy[match_index]);
             }
-            // technically code duplication, but the implementation that avoids
-            // this is significantly less clear.  Thoughts?
             pipeline.commands.push_back(command);
             command.clear();
         } 
-        //redirected words (can't exit before, b/c \n is present)
+
+        //redirected words
         if (next_word_redirects_in || next_word_redirects_out) {
-            if (match_index == job_str_copy.size() ||
-                string("\n;|<>").find(job_str_copy[match_index]) != string::npos) {
-                //relies on short circuit (though case where it
-                //comes up is impossible) Bad?
+            if (match_index == job_str_copy.size()) {
+                throw SyntaxErrorParseException("newline");
+            } else if (string("\n;|<>").find(job_str_copy[match_index]) != string::npos) {
                 throw SyntaxErrorParseException(job_str_copy[match_index]);
             }
         }
+
         //fully consumed string
-        if (match_index == job_str_copy.size()) {
-            debug("\nexitall %d iter: %d\n", match_index, iter);
-            break;
-        }
+        if (match_index == job_str_copy.size()) break;
+
 
         char matched = job_str_copy[match_index];
-        job_str_copy = job_str_copy.substr(match_index + 1);
-
+        job_str_copy = job_str_copy.substr(match_index + 1); //MODJOBSTR
         switch(matched) {
             case '\t':
             case ' ':
@@ -117,7 +131,7 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
                 continue;
             }
             case '\"': {
-                partial_word.append(ParseDoubleQuote(job_str_copy, env));
+                partial_word.append(ParseDoubleQuote(job_str_copy, env, should_execute));
                 quote_word = true;
                 continue;
             }
@@ -126,159 +140,102 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
                 quote_word = true;
                 continue;
             }
+            //TODO: append to list of "commands to run"
+            //In this case, DO parse output
+            case '`': {
+                // struct JobStringsToInject inner_job;
+                // inner_job.raw_job_str = ParseBacktick(job_str_copy, env);
+                // inner_job.pos_word = partial_word.size();
+                // inner_job.pos_command = command.words.size();
+                // inner_job.pos_pipeline = pipeline.commands.size();
+                // inner_job.pos_job = job.pipelines.size();
+                // inner_job.quote_word = false;
+                // backtick_jobs.push_back(inner_job);
+                partial_word.append(ParseBacktick(job_str_copy, env, should_execute));
+                continue;
+            }
+            case '\\': {
+                partial_word.append(ParseBackslash(job_str_copy));
+                continue;
+            }
+            case '$': {
+                //TODO: In this case DO parse output
+                partial_word.append(ParseVariable(job_str_copy, env));
+                continue;
+            }
             default : {
-                partial_word.append(SwitchParsingTarget(matched, job_str_copy, env));
+                throw IncompleteParseException("Matched Unknown character");
             }
         }
-        debug("%s", "reloop");
     }
-
-    //end of file, parse one last thing
-    // char matched = job_str[match_index];
-    // debug("end strcspn loc:%s %c", job_str_copy.c_str() + match_index, matched);
-    // debug("end partial_word: %s", partial_word.c_str());
-    // if (match_index != 0) partial_word.append(job_str_copy.substr(0,match_index));
-    // debug("end partial_word: %s", partial_word.c_str());
-    // if (partial_word.size() > 0) {
-    //     if (next_word_redirects_in) {
-    //         command.input_file = partial_word;
-    //         next_word_redirects_in = false;
-    //     } else if (next_word_redirects_out) {
-    //         command.output_file = partial_word;
-    //         next_word_redirects_out = false;
-    //     } else command.words.push_back(partial_word);
-    //     partial_word = string();
-    // }
-    // if (command.words.size() > 0) pipeline.commands.push_back(command);
-    // TODO: if command size is 0, and we have a previous entry in this pipeline
-    // the we must wait for more input
     //command breaking already handled, but must add pipeline to jobs still
     if (pipeline.commands.size() > 0) job.pipelines.push_back(pipeline);
     job.print();
-    if (true) return job;
-    //handle_found(loc[0], loc) -> switches to whichever function is appropriate to match
-
-
-    // vector<string> pipeline_strs = StringUtil::Split(job_str, ";"); //TODO: fix, maybe escaped ('\")
-
-
-    // for (string& pipeline_str : pipeline_strs) {
-    //     ParsedPipeline pipeline;
-
-    //     vector<string> command_strs = StringUtil::Split(pipeline_str, "|"); //TODO: fix, maybe escaped ('\")
-    //     for (string& command_str : command_strs) {
-    //         ParsedCommand command;
-    //         // debug("%s", command_str.c_str());
-
-    //         vector<string> split_command = StringUtil::Split(command_str, ">"); //TODO: fix, maybe escaped ('\")
-    //         command_str = split_command[0];
-    //         if (split_command.size() >= 2) {
-    //             for (int i = 1; i < split_command.size(); i++) {
-    //                 int start_pos = split_command[i].find_first_not_of(' ');
-    //                 int end_pos = split_command[i].find_first_of(' ', start_pos);
-    //                 command.output_file = split_command[i].substr(start_pos, end_pos);
-    //                 if (end_pos < split_command[i].size()) {
-    //                     command_str.push_back(' ');
-    //                     command_str.append(split_command[i].substr(end_pos));
-    //                 }
-    //             }
-    //         }
-
-    //         split_command = StringUtil::Split(command_str, "<"); //TODO: fix, maybe escaped ('\")
-    //         command_str = split_command[0];
-    //         if (split_command.size() >= 2) {
-    //             for (int i = 1; i < split_command.size(); i++) {
-    //                 int start_pos = split_command[i].find_first_not_of(' ');
-    //                 int end_pos = split_command[i].find_first_of(' ', start_pos);
-    //                 command.input_file = split_command[i].substr(start_pos, end_pos);
-    //                 if (end_pos < split_command[i].size()) {
-    //                     command_str.push_back(' ');
-    //                     command_str.append(split_command[i].substr(end_pos));
-    //                 }
-    //             }
-    //         }
-
-    //         // TODO: handle multiple whitespaces in a row, different whitespace
-    //         //       types
-    //         // TODO: handle input and output file redirection
-    //         command.words = StringUtil::Split(command_str, " ");
-
-    //         pipeline.commands.push_back(command);
-    //     }
-
-    //     job.pipelines.push_back(pipeline);
-    // }
-
-    // return job;
+    // printf("starting_job_now:%s:\n", job_str_start);
+    return job;
 }
 
 
-string JobParser::SwitchParsingTarget(char matched, string& job_str_copy, Environment& env) {
-    switch(matched) {
-        case '`': {
-            return ParseBacktick(job_str_copy, env);
-        }
-        case '\\': {
-            return ParseBackslash(job_str_copy);
-        }
-        case '$': {
-            return ParseVariable(job_str_copy, env);
-        }
-        default : {
-            throw IncompleteParseException("Matched Unknown character");
-        }
-    }
+// string JobParser::SwitchParsingTarget(char matched, string& job_str_copy, Environment& env) {
+//     switch(matched) {
+//         //TODO: Somehwat disgusting idea that avoids addint state and should still
+//         //maintain correctness : have a sentinel that is INVALID to parse
+//         //be returned from "quoted" backticks, such that we just
+//         //look up - in order - these sentinels which CANNOT initially appear
+//         //through any other means, and run the saved commands in that order
+//     }
+// }
 
-// return string(message);
-}
-
-string JobParser::ParseDoubleQuote(string& job_str_copy, Environment& env) {
+string JobParser::ParseDoubleQuote(string& job_str_copy, Environment& env,
+        bool should_execute) {
     string quoted = string();
     int match_index;
     while((match_index = strcspn(job_str_copy.c_str(), "\"`$\\")) != job_str_copy.size()) {
         char matched = job_str_copy[match_index];
-        debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
         quoted.append(job_str_copy.substr(0,match_index));
-        job_str_copy = job_str_copy.substr(match_index + 1);
-        if (matched == '\"') {
-            return quoted;
-        } else {
-            quoted.append(SwitchParsingTarget(matched, job_str_copy, env));
+        job_str_copy = job_str_copy.substr(match_index + 1); //MODJOBSTR
+        switch(matched) {
+            case '\"': {
+                return quoted;
+            }
+            case '`': {
+                //TODO: append to list of "commands to run"
+                //In this case, DON'T parse output
+                // struct JobStringsToInject inner_job;
+                // inner_job.raw_job_str = ParseBacktick(job_str_copy, env);
+                quoted.append(ParseBacktick(job_str_copy, env, should_execute));
+                continue;
+            }
+            case '\\': {
+                quoted.append(ParseBackslash(job_str_copy));
+                continue;
+            }
+            case '$': {
+                //TODO: In this case DON'T parse output
+                quoted.append(ParseVariable(job_str_copy, env));
+                continue;
+            }
         }
     }
-    //TODO: this means unmatched ", so should do something different
-    //for now
+    // unmatched "
     throw IncompleteParseException("Incomplete job given, no valid closing quote (\")");
-    // return quoted;
-
-// return string(message);
 }
 
 string JobParser::ParseSingleQuote(string& job_str_copy) {
-    // const char *loc = strpbrk(message, "\'");
     int match_index = strcspn(job_str_copy.c_str(), "\'");
     string quoted = job_str_copy.substr(0,match_index);
-    debug("strcspn loc str:%s, char:\'", job_str_copy.c_str() + match_index);
     if (match_index != job_str_copy.size()) {
-        job_str_copy = job_str_copy.substr(match_index + 1);
+        job_str_copy = job_str_copy.substr(match_index + 1); //MODJOBSTR
         return quoted;
     }
-    //TODO: this means unmatched ', so should do something different
-    //for now
+    // unmatched '
     throw IncompleteParseException("Incomplete job given, no valid closing quote (')");
-    // return quoted;
-
-    //TODO: to handle "" case, instead of using size of previous to determine if should
-    // append word, set some "valid word" thing that both operates when word is nonzero size
-    // AND when we matched string.  Then will continue to match if no space, but will also
-    // create word if necessary for "" or ''
-// return string(message);
 }
 
 string JobParser::ParseBackslash(string& job_str_copy, char mode) {
     string quoted = job_str_copy.substr(0,1);
     if (mode == ' ') {
-        job_str_copy = job_str_copy.substr(1);
+        job_str_copy = job_str_copy.substr(1); //MODJOBSTR
         if (quoted != "\n") return quoted;
         else {
             if (job_str_copy.empty()) {
@@ -296,7 +253,7 @@ string JobParser::ParseBackslash(string& job_str_copy, char mode) {
             // unmodified.append(quoted);
             return unmodified;
         }
-        job_str_copy = job_str_copy.substr(1);
+        job_str_copy = job_str_copy.substr(1); //MODJOBSTR
         return quoted;
     }
     //only backtick (inside, will parse as new job)
@@ -316,12 +273,10 @@ string JobParser::ParseBackslash(string& job_str_copy, char mode) {
         //namely, bash will consider something like echo `echo \\` a complete command, even
         //though according to spec that first backslashs should be ignored while scanning for end
         //and the second one should cause the last ` not to match
-        job_str_copy = job_str_copy.substr(1);
+        job_str_copy = job_str_copy.substr(1); //MODJOBSTR
         return quoted;
     }
     throw IncompleteParseException("Unknown backslash mode");
-
-// return string(job_str_copy);
 }
 
 //TODO: parse whitespace on return IF AND ONLY IF this is in main unquoted lines
@@ -332,82 +287,70 @@ string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO
     if (string("*?#").find(first_var_char) != string::npos ||
         isdigit(first_var_char)) {
         variable_name = string(1, first_var_char);
-        job_str_copy = job_str_copy.substr(1);
+        job_str_copy = job_str_copy.substr(1); //MODJOBSTR
     } else if (first_var_char =='{') {
         int match_index = job_str_copy.find_first_of("}");
         variable_name = job_str_copy.substr(1,match_index-1); //skip first
-        job_str_copy = job_str_copy.substr(match_index + 1);
+        job_str_copy = job_str_copy.substr(match_index + 1); //MODJOBSTR
     } else if (isalpha(first_var_char)) {
         int match_index = job_str_copy.find_first_not_of(
           "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
         variable_name = job_str_copy.substr(0,match_index);
-        job_str_copy = job_str_copy.substr(match_index);
+        job_str_copy = job_str_copy.substr(match_index); //MODJOBSTR
     } else {
         string unmodified("$");
         return unmodified;
     }
-
-
     string var_value = env.get_variable(variable_name);
-    string tmp_var_str("VAR[");
-    string close_str("]");
-    tmp_var_str = tmp_var_str + variable_name + close_str;
-    // return tmp_var_str;
     return var_value;
 }
 
 //TODO: parse whitespace on return IF AND ONLY IF this is in main unquoted lines
 //    ---> ideally, in main thread, but then have a temp-state thing I don't love
-string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
+string JobParser::ParseBacktick(string& job_str_copy, Environment& env,
+        bool should_execute) { //TODO: push at front & reparse (may introduce words)
     string quoted = string();
     int match_index;
     while((match_index = strcspn(job_str_copy.c_str(), "`\\")) != job_str_copy.size()) {
         char matched = job_str_copy[match_index];
         debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
         quoted.append(job_str_copy.substr(0,match_index));
-        job_str_copy = job_str_copy.substr(match_index + 1);
+        job_str_copy = job_str_copy.substr(match_index + 1); //MODJOBSTR
         if (matched == '`') {
-            string command_output_str;
-            try {
-                int fds[2];
-                FileUtil::CreatePipe(fds);
-                int read = fds[0];
-                int write = fds[1];
-                Job(quoted, env).RunAndWait(STDIN_FILENO, write);  //TODO redirect this to put inside our string
-                // Job(quoted, env).RunAndWait(STDIN_FILENO, STDOUT_FILENO);  //TODO redirect this to put inside our string
-                FileUtil::CloseDescriptor(write);
-                command_output_str = FileUtil::DumpDescriptorIntoString(read);
-                FileUtil::CloseDescriptor(read);
+            if (should_execute) {
+                string command_output_str;
+                try {
+                    int fds[2];
+                    FileUtil::CreatePipe(fds);
+                    int read = fds[0];
+                    int write = fds[1];
+                    ParsedJob parsed_job = Parse(quoted, env);
+                    Job(parsed_job, env).RunAndWait(STDIN_FILENO, write);  //TODO redirect this to put inside our string
+                    // Job(quoted, env).RunAndWait(STDIN_FILENO, STDOUT_FILENO);  //TODO redirect this to put inside our string
+                    FileUtil::CloseDescriptor(write);
+                    command_output_str = FileUtil::DumpDescriptorIntoString(read);
+                    FileUtil::CloseDescriptor(read);
 
-            } catch (IncompleteParseException& ipe) {
-                //TODO: probably should probably define more different errors for each
-                string subcommand_err_message("command substitution: ");
-                subcommand_err_message.append(ipe.what());
-                throw FatalParseException(subcommand_err_message);
-            } catch (FatalParseException& fpe) {
-                //TODO: maybe just allow this to propogate?  Idk feels like I should
-                //say that it's within a subcommand
-                string subcommand_err_message("command substitution: ");
-                subcommand_err_message.append(fpe.what());
-                throw FatalParseException(subcommand_err_message);
+                } catch (IncompleteParseException& ipe) {
+                    //TODO: probably should probably define more different errors for each
+                    string subcommand_err_message("command substitution: ");
+                    subcommand_err_message.append(ipe.what());
+                    throw FatalParseException(subcommand_err_message);
+                } catch (FatalParseException& fpe) {
+                    //TODO: maybe just allow this to propogate?  Idk feels like I should
+                    //say that it's within a subcommand
+                    string subcommand_err_message("command substitution: ");
+                    subcommand_err_message.append(fpe.what());
+                    throw FatalParseException(subcommand_err_message);
+                }
+                job_str_copy = command_output_str + job_str_copy; //MODJOBSTR
+                debug("new string:%s\n", job_str_copy.c_str());
             }
-            // int extra_space = command_output_str.size();
-            // printf("size of zdstroutput %lu %s\n", job_str_copy.size(), command_output_str.c_str());
-            // job_str_copy.reserve(job_str_copy.capacity() + extra_space);
-            // job_str_copy.insert(0, command_output_str);
-            // job_str_copy = command_output_str + job_str_copy;
-            // char *REMOVE = (char *)malloc(command_output_str.size() + job_str_copy.size() + 2);
-            // memcpy(REMOVE, command_output_str.c_str(), command_output_str.size());
-            // memcpy(REMOVE + command_output_str.size(), job_str_copy.c_str(), job_str_copy.size());
-            // job_str_copy = REMOVE;
-
-            job_str_copy = command_output_str + job_str_copy;
-            debug("new string:%s\n", job_str_copy.c_str());
-            // printf("size of nono %lu\n", job_str_copy.size());
-            // printf("jobstr: %s\n\n", job_str_copy.c_str());
-            //TODO: bash DOESN'T actually reparse from scratch, so we shouldn't
-            //do this here
-            return string();
+            // TODO: we MUST inject here if we want to reparse from scratch
+            // otherwise can't know if we've completed a command
+            // (e.g. echo "`echo \"` isn't complete unless we run `echo \"`)
+            return string(); //TODO: we can actually just return the command
+            //to be injected, `` never returns any actual parsed content
         } else {
             quoted.append(ParseBackslash(job_str_copy, '`'));
         }
@@ -416,28 +359,20 @@ string JobParser::ParseBacktick(string& job_str_copy, Environment& env) { //TODO
 }
 
 
-string JobParser::ParseTilde(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
-    //if any previous character != space or similar, then ignore & return tilde
-    //parse subsequent characters as username.
-    //If find username, substitute that
-    //else, tilde is literal & return that
+string JobParser::ParseTilde(string& job_str_copy, Environment& env) {
     int match_index = job_str_copy.find_first_of("/\t\n ;|<>");
     string matched_str = job_str_copy.substr(0,match_index);
     if (matched_str.size() == 0) {
-        //just expand tilde w/o username
-        return env.get_variable("HOME"); //as per spec, this is default
+        //just expand tilde w/o username. As per spec, this is default var
+        return env.get_variable("HOME");
     }
     string home_dir = FileUtil::GetUserHomeDirectory(matched_str);
     if (home_dir == "") {
         //no user found, just use literal tilde & consume no input
         return string("~");
     }
-    job_str_copy = job_str_copy.substr(match_index);
-    //CAN GET TO WORK: have "prev was space or ;|> (last of which will fail with ambigious
-    // "/User/jakemck: Is a directory" [unclear if failed b/c redirecting to dir, or because
-    //has standalone directory])
+    job_str_copy = job_str_copy.substr(match_index); //MODJOBSTR
     return home_dir;
-
 }
 
 

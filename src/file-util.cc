@@ -163,8 +163,6 @@ vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
     return current_matches;
 }
 
-// Method for making star matching run in linear time was inspired by this
-// blog post: https://research.swtch.com/glob
 bool FileUtil::GlobMatch(const string& pattern, const string& name) {
     int px = 0;
     int nx = 0;
@@ -181,8 +179,7 @@ bool FileUtil::GlobMatch(const string& pattern, const string& name) {
         if (px < pattern.length()) {
             char c = pattern[px];
             switch (c) {
-                case '?': {
-                    // single-character wildcard
+                case '?': { // Single-character wildcard
                     if (nx < name.length()) {
                         px++;
                         nx++;
@@ -190,17 +187,16 @@ bool FileUtil::GlobMatch(const string& pattern, const string& name) {
                     }
                     break;
                 }
-                case '*': {
-                    // zero-or-more-character wildcard
-
-                    // Try to match at nx. If that doesn't work out, restart at
-                    // nx+1 next.
+                case '*': { // Zero-or-more-character wildcard
+                    // Method for making star matching run in linear time. Try
+                    // to match at nx. If that doesn't work out, restart at nx+1
+                    // next.
                     nextPx = px;
                     nextNx = nx + 1;
                     px++;
                     continue;
                 }
-                case '[': {
+                case '[': { // Start of character class
                     if (inCharClass) {
                         // Appears within character class, treat as literal
                         goto default_case;
@@ -209,13 +205,13 @@ bool FileUtil::GlobMatch(const string& pattern, const string& name) {
                     px++;
                     continue;
                 }
-                case ']': {
+                case ']': { // End of character class
                     if (!inCharClass) {
-                        // Appears outside of character class, treat as literal
+                        // appears outside of character class, treat as literal
                         goto default_case;
                     }
                     if (inRange) {
-                        // TODO?
+                        throw FileException("End of character class without ending range");
                     }
                     if (nx < name.length()) {
                         bool matched = find(charClass.begin(), charClass.end(),
@@ -231,9 +227,13 @@ bool FileUtil::GlobMatch(const string& pattern, const string& name) {
                     }
                     break;
                 }
-                case '-': {
+                case '-': { // Chracter class range character
                     if (!inCharClass) {
                         // Appears outside of character class, treat as literal
+                        goto default_case;
+                    }
+                    if (charClass.size() == 0) {
+                        // Appears at start of character class, treat as literal
                         goto default_case;
                     }
                     inRange = true;
@@ -242,7 +242,7 @@ bool FileUtil::GlobMatch(const string& pattern, const string& name) {
                     px++;
                     continue;
                 }
-                case '^': {
+                case '^': { // Character class negation character
                     if (!inCharClass) {
                         // Appears outside of character class, treat as literal
                         goto default_case;
@@ -273,7 +273,7 @@ bool FileUtil::GlobMatch(const string& pattern, const string& name) {
                         continue;
                     }
 
-                    // ordinary character
+                    // Ordinary character
                     if (nx < name.length() && name[nx] == c) {
                         px++;
                         nx++;
@@ -283,7 +283,10 @@ bool FileUtil::GlobMatch(const string& pattern, const string& name) {
                 }
             }
         }
+
         // Mismatch. Maybe restart.
+        // For more information about this strategy which allows star matching
+        // to run in real-time, see this blog post: https://research.swtch.com/glob
         if (0 < nextNx && nextNx <= name.length()) {
             px = nextPx;
             nx = nextNx;

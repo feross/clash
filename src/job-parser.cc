@@ -44,20 +44,22 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
             }
         }
         //command breaking
-        if (bool end = (match_index == job_str_copy.size()) ||
-            string(";|").find(job_str_copy[match_index]) != string::npos) {
+        if (match_index == job_str_copy.size()) {
             //relies on short circuit to avoid code duplication
-            if (command.words.empty()) {
-                if (end && !pipeline.commands.empty()) {
-                    throw IncompleteParseException("Incomplete job given, no command break");
-                } else {
-                    throw SyntaxErrorParseException(job_str_copy[match_index]);
-                }
-            } else {
-                pipeline.commands.push_back(command);
-                command.clear();
+            if (command.words.empty() && !pipeline.commands.empty()) {
+                throw IncompleteParseException("Incomplete job given, no command break");
             }
-        }
+            pipeline.commands.push_back(command);
+            // command.clear();
+        } else if (string(";|").find(job_str_copy[match_index]) != string::npos) {
+            if (commands.words.empty()) {
+                throw SyntaxErrorParseException(job_str_copy[match_index]);
+            }
+            // technically code duplication, but the implementation that avoids
+            // this is significantly less clear.  Thoughts?
+            pipeline.commands.push_back(command);
+            command.clear();
+        } 
         //redirected words (can't exit before, b/c \n is present)
         if (next_word_redirects_in || next_word_redirects_out) {
             if (match_index == job_str_copy.size() ||

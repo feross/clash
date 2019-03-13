@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -17,6 +18,7 @@
 #include <vector>
 
 #include "log.h"
+#include "string-util.h"
 
 using namespace std;
 
@@ -49,6 +51,7 @@ class FileUtil {
         static vector<string> GetDirectoryEntries(const string& path);
         static vector<string> GetGlobMatches(const string& pattern);
         static bool IsExecutableFile(const string& path);
+        static bool IsDirectory(const string& path);
 
         // TODO: this does not belong here
         static pid_t CreateProcess();
@@ -57,5 +60,5 @@ class FileUtil {
         static string GetUserHomeDirectory(const string& user);
 
     private:
-        // static bool GlobMatch(string& pattern, string& name);
+        static bool GlobMatch(const string& pattern, const string& name);
 };

@@ -161,10 +161,6 @@ void Command::RunProgram(int source, int sink) {
     FileUtil::DuplicateDescriptor(source, STDIN_FILENO);
     FileUtil::DuplicateDescriptor(sink, STDOUT_FILENO);
 
-    // for (string& match : FileUtil::GetGlobMatches(words[1])) {
-    //     debug("match: %s", match.c_str());
-    // }
-
     string program_path = env.FindProgramPath(words[0]);
     if (program_path.empty()) {
         fprintf(stderr, "-clash: %s: command not found\n", words[0].c_str());

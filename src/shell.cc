@@ -104,9 +104,6 @@ bool Shell::ParseFile(const string& file_path) {
 }
 
 int Shell::StartRepl() {
-    // for (string& match : FileUtil::GetGlobMatches("src/[a-c]lash.cc")) {
-    //     debug("match: %s", match.c_str());
-    // }
     bool isTTY = isatty(STDIN_FILENO);
     debug("isTTY: %d", isTTY);
     string remaining_job_str = string();

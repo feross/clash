@@ -24,7 +24,9 @@ void Command::Run(int source, int sink) {
 
 void Command::Wait() {
     // TODO: check for error
-    waitpid(pid, NULL, 0);
+    int status;
+    waitpid(pid, &status, 0);
+    env.set_variable("?", to_string(WEXITSTATUS(status)));
 }
 
 string Command::ToString() {

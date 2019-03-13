@@ -77,8 +77,8 @@ bool Command::RunBuiltin() {
             try {
                 status = stoi(words[1]);
             } catch (const invalid_argument& err) {
-                printf("exit: %s: numeric argument required\n", words[1].c_str());
-                status = -1;
+                printf("exit: %s: Numeric argument required\n", words[1].c_str());
+                status = 2;
             }
             exit(status);
         } else {
@@ -99,7 +99,7 @@ bool Command::RunBuiltin() {
         if (words.size() == 3) {
             env.set_variable(words[1], words[2]);
         } else if (words.size() < 3) {
-            printf("set: not enough arguments");
+            printf("set: Not enough arguments");
         } else {
             printf("set: Too many arguments");
         }
@@ -115,7 +115,7 @@ bool Command::RunBuiltin() {
 
     if (program == "unset") {
         if (words.size() == 1) {
-            printf("unset: not enough arguments\n");
+            printf("unset: Not enough arguments\n");
         } else {
             vector<string> names(words.begin() + 1, words.end());
             for (string& name : names) {
@@ -127,7 +127,7 @@ bool Command::RunBuiltin() {
 
     if (program == "export") {
         if (words.size() == 1) {
-            printf("export: not enough arguments\n");
+            printf("export: Not enough arguments\n");
         } else {
             vector<string> names(words.begin() + 1, words.end());
             for (string& name : names) {

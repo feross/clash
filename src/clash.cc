@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
+<<<<<<< HEAD
     //defaults case
     Environment env;
     env.set_variable("0", argv[0]);

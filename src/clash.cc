@@ -41,7 +41,8 @@ int main(int argc, char* argv[]) {
 
     int c_flag_index = -1;
     for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i], "-c") == 0) {
+        if (strcmp(argv[i], "-c") == 0
+            || strcmp(argv[i], "--command") == 0) {
             c_flag_index = i;
             break;
         }

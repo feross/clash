@@ -18,8 +18,30 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
     return Parse(job_str, env, true);
 }
 
+//overview: will parse individual pipelines... and keep continuing until whole
+//string is consumed (throwing if last pipeline is incomplete)
+
+//so we have a "parse pipeline" function, v.s. a "consume string" function.
+//consume string will output
+
 ParsedJob JobParser::Parse(string& job_str, Environment& env, bool should_execute) {
     string job_str_copy(job_str);
+    ParsedJob job;
+    while(!job_str_copy.empty()) {
+        ParsedPipeline pipeline = ParsePipeline(job_str_copy, env, should_execute);
+        pipeline.remaining_job_str = string(job_str_copy);
+        if (pipeline.commands.size() > 0) job.pipelines.push_back(pipeline);
+    }
+    // for (ParsedPipeline& pipeline : job.pipelines) {
+    //     printf("remaining job_str:%s:\n", pipeline.remaining_job_str.c_str());
+    // }
+    // printf("remaining job_str:%s:\n", job_str_copy.c_str());
+    return job;
+}
+
+
+ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, bool should_execute) {
+    // string& job_str_copy = job_str;
     // const char* job_str_start = job_str_copy.c_str();
     // string& job_str_moved = job_str_copy;
     // job_str_copy = job_str_copy.substr(3);
@@ -28,7 +50,7 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env, bool should_execut
     // exit(0);
     ParsedCommand command;
     ParsedPipeline pipeline;
-    ParsedJob job;
+    // ParsedJob job;
 
     //TODO: could just rebuild command out here, i.e. every time we're about to
     //discard something, or returned a word, build string from that.
@@ -87,11 +109,15 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env, bool should_execut
         }
 
         //fully consumed string
-        if (match_index == job_str_copy.size()) break;
-
-
+        if (match_index == job_str_copy.size()) {
+            job_str_copy = string(); //technically job_str_copy.substr(match_index); //MODJOBSTR
+            break;
+        }
         char matched = job_str_copy[match_index];
         job_str_copy = job_str_copy.substr(match_index + 1); //MODJOBSTR
+        if (matched == ';') {
+            break;
+        }
         switch(matched) {
             case '\t':
             case ' ':
@@ -100,15 +126,17 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env, bool should_execut
                 debug("whitespace, prev_word:%s", partial_word.c_str());
                 continue;
             }
-            case ';': { //TODO: doesn't work at end of line
+            case ';': { //TODO: remove if breaking above (i.e. turning this into
+                // a pipeline-parsing function to be called repeatedly)
+                //TODO: doesn't work at end of line
                 //TODO: need to introduce a variable
                 // that tracks whether the last command ended with |
                 // otherwise can't distinguish echo good;
                 // "echo good;"" vs. "echo bad |"
                 // the latter should be fine, but must ask
                 // for more characters
-                job.pipelines.push_back(pipeline);
-                pipeline.clear();
+                // job.pipelines.push_back(pipeline);
+                // pipeline.clear();
                 continue;
             }
             case '<': {
@@ -169,10 +197,11 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env, bool should_execut
         }
     }
     //command breaking already handled, but must add pipeline to jobs still
-    if (pipeline.commands.size() > 0) job.pipelines.push_back(pipeline);
-    job.print();
+    // if (pipeline.commands.size() > 0) job.pipelines.push_back(pipeline);
+    // job.print();
     // printf("starting_job_now:%s:\n", job_str_start);
-    return job;
+    // printf("remaining pipeline str:%s:\n", job_str_copy.c_str());
+    return pipeline;
 }
 
 

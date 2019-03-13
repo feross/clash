@@ -37,7 +37,12 @@ struct ParsedCommand {
 
 struct ParsedPipeline {
     vector<ParsedCommand> commands;
-    void clear() { commands.clear(); };
+    string remaining_job_str; //these must be reparsed after running, huge number
+    // of tests rely on this TODO don't love, but might require to match behavior
+    void clear() {
+        commands.clear();
+        remaining_job_str.clear();
+    };
 };
 
 struct ParsedJob {
@@ -113,7 +118,10 @@ class JobParser {
         // avoid executing command substitutions within partial commands
         static ParsedJob Parse(string& job_str, Environment& env);
     private:
-        static ParsedJob Parse(string& job_str, Environment& env, bool should_execute);
+        static ParsedJob Parse(string& job_str, Environment& env, 
+            bool should_execute);
+        static ParsedPipeline ParsePipeline(string& job_str_copy,
+            Environment& env, bool should_execute);
         static string SwitchParsingTarget(char matched, string& loc, Environment& env);
         static string ParseDoubleQuote(string& job_str_copy, Environment& env,
             bool should_execute);

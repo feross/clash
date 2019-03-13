@@ -83,6 +83,25 @@ vector<string> FileUtil::GetDirectoryEntries(string& path) {
     return entries;
 }
 
+vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
+    glob_t glob_matches;
+    memset(&glob_matches, 0, sizeof(glob_matches));
+
+    int ret = glob(glob_pattern.c_str(), 0, NULL, &glob_matches);
+    if(ret != 0 && ret != GLOB_NOMATCH) {
+        globfree(&glob_matches);
+        throw FileException("glob failed with return value" + to_string(ret));
+    }
+
+    vector<string> matches;
+    for(size_t i = 0; i < glob_matches.gl_pathc; i++) {
+        matches.push_back(string(glob_matches.gl_pathv[i]));
+    }
+
+    globfree(&glob_matches);
+    return matches;
+}
+
 bool FileUtil::IsExecutableFile(string& path) {
     return access(path.c_str(), X_OK) == 0;
 }

@@ -1,7 +1,6 @@
 Feross Todo:
 
 - If pipeline has one or more built-ins and one or more commands, just run the commands
-- Long commands break
 - File path star expansion
 
 
@@ -39,7 +38,7 @@ instead it outputs $PATH exactly
 // 3/12 7pm remaining things to implement:
 
 - initialize variables on start, including special variables like $#, $0, etc.
-- move command substitutions to be inside "commands" - meaning commands will 
+- move command substitutions to be inside "commands" - meaning commands will
 have a way to store arbitrary number of jobs + where the words should be inserted, which
 could be inside of a word
 ---> additionally, we need some method to parse words (& *-style expansions) only, from the output of these commands.  Decompose out from Job Parser, probably

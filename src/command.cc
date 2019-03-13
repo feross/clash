@@ -158,7 +158,6 @@ void Command::RunProgram(int source, int sink) {
     char * argv[words.size() + 1];
     for (size_t i = 0; i < words.size(); i++) {
         argv[i] = const_cast<char *>(words[i].c_str());
-        // printf("storing %s\n", argv[i]);
     }
     argv[words.size()] = NULL;
 

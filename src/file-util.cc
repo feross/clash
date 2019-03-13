@@ -86,27 +86,7 @@ vector<string> FileUtil::GetDirectoryEntries(const string& path) {
     return entries;
 }
 
-// vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
-//     glob_t glob_matches;
-//     memset(&glob_matches, 0, sizeof(glob_matches));
-
-//     int ret = glob(glob_pattern.c_str(), 0, NULL, &glob_matches);
-//     if(ret != 0 && ret != GLOB_NOMATCH) {
-//         globfree(&glob_matches);
-//         throw FileException("glob failed with return value" + to_string(ret));
-//     }
-
-//     vector<string> matches;
-//     for(size_t i = 0; i < glob_matches.gl_pathc; i++) {
-//         matches.push_back(string(glob_matches.gl_pathv[i]));
-//     }
-
-//     globfree(&glob_matches);
-//     return matches;
-// }
-
 vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
-    debug("======================= GetGlobMatches(%s) =======================", glob_pattern.c_str());
     vector<string> current_matches;
     if (glob_pattern.length() == 0) {
         return current_matches;
@@ -122,21 +102,13 @@ vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
 
     for (size_t i = 0; i < pattern_segments.size(); i++) {
         string pattern_segment = pattern_segments[i];
-        debug("pattern_segment: %s", pattern_segment.c_str());
-
         vector<string> next_matches;
-        for (string& current_match : current_matches) {
-            debug("current_match: %s", current_match.c_str());
 
+        for (string& current_match : current_matches) {
             vector<string> entries = GetDirectoryEntries(current_match);
 
             for (string& entry : entries) {
-                // debug("entry: %s", entry.c_str());
-
                 if (GlobMatch(pattern_segment, entry)) {
-                    // debug("matched entry: %s", entry.c_str());
-                    // TODO: if not on last iteration, ensure that entry is a
-                    // directory, not a file
                     string next_match;
                     if (current_match == "") {
                         next_match = entry;
@@ -147,16 +119,14 @@ vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
                     }
 
                     // Ensure that files are only added when examining the last
-                    // path segment. Otherwise, we skip them since they cannot
-                    // possibly match when there are further segments to examine
-                    // later.
+                    // path segment. Otherwise, skip them since they cannot
+                    // match if there are further segments to examine later.
                     if (IsDirectory(next_match) || i == pattern_segments.size() - 1) {
                         next_matches.push_back(next_match);
                     }
                 }
             }
         }
-
         current_matches = next_matches;
     }
 

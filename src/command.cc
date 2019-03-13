@@ -47,7 +47,11 @@ bool Command::RunBuiltin() {
     if (program == "cd") {
         if (words.size() == 1) {
             const string& home_directory = env.get_variable("HOME");
-            FileUtil::SetCurrentWorkingDirectory(home_directory);
+            if (!home_directory.empty()) {
+                FileUtil::SetCurrentWorkingDirectory(home_directory);
+            } else {
+                printf("cd: HOME not set");
+            }
         } else if (words.size() == 2) {
             FileUtil::SetCurrentWorkingDirectory(words[1]);
         } else {

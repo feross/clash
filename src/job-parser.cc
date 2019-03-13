@@ -52,7 +52,7 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env) {
             pipeline.commands.push_back(command);
             // command.clear();
         } else if (string(";|").find(job_str_copy[match_index]) != string::npos) {
-            if (commands.words.empty()) {
+            if (command.words.empty()) {
                 throw SyntaxErrorParseException(job_str_copy[match_index]);
             }
             // technically code duplication, but the implementation that avoids

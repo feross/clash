@@ -72,7 +72,7 @@ bool Command::RunBuiltin() {
     if (program == "exit") {
         if (words.size() == 1) {
             exit(0);
-        } else if (words.size() == 2) {
+        } else if (words.size() >= 2) {
             int status;
             try {
                 status = stoi(words[1]);
@@ -80,9 +80,11 @@ bool Command::RunBuiltin() {
                 printf("exit: %s: Numeric argument required\n", words[1].c_str());
                 status = 2;
             }
+            if (words.size() != 2) {
+                printf("exit: Too many arguments");
+            }
             exit(status);
         } else {
-            printf("exit: Too many arguments");
         }
         return true;
     }

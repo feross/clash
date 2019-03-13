@@ -27,8 +27,6 @@
 
 using namespace std;
 
-
-
 class Job {
     public:
         /*

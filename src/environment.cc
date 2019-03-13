@@ -51,7 +51,18 @@ vector<string> Environment::get_export_variable_strings() {
     return export_variable_strings;
 }
 
+// If no matching executable file can be found, return the first
+// matching non-executable file. If nothing matched, empty string is
+// returned.
 string Environment::FindProgramPath(string& program_name)  {
+    // If the program name contains a "/" character, then it is already a
+    // path to an exutable so use it as-is.
+    if (program_name.find("/") != string::npos) {
+        return program_name;
+    }
+
+    string first_program_path;
+
     // If PATH is missing, use a reasonable default
     string path = variables.count("PATH")
         ? variables["PATH"]
@@ -60,15 +71,23 @@ string Environment::FindProgramPath(string& program_name)  {
     vector<string> search_paths = StringUtil::Split(path, ":");
 
     for (string search_path : search_paths) {
-        vector<string> dirs = FileUtil::GetDirectoryEntries(search_path);
+        vector<string> entries = FileUtil::GetDirectoryEntries(search_path);
+        for (string& entry : entries) {
+            if (entry != program_name) {
+                continue;
+            }
+
+            string program_path = search_path + "/" + program_name;
+            if (first_program_path.empty()) {
+                first_program_path = program_path;
+            }
+
+            if (FileUtil::IsExecutableFile(program_path)) {
+                return program_path;
+            }
+        }
     }
 
-    // If the program name contains a "/" character, then it is already a
-    // path to an exutable so use it as-is.
-    if (program_name.find("/") != string::npos) {
-        return path;
-    }
-
-    // TODO
-    return "";
+    // May return empty string, indicating no file was matched
+    return first_program_path;
 }

@@ -46,6 +46,8 @@ class FileUtil {
             mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
         static vector<string> GetDirectoryEntries(string& path);
+        static bool IsExecutableFile(string& path);
+
 
         // TODO: this does not belong here
         static pid_t CreateProcess();

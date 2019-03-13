@@ -140,14 +140,21 @@ void Command::RunProgram(int source, int sink) {
     FileUtil::DuplicateDescriptor(source, STDIN_FILENO);
     FileUtil::DuplicateDescriptor(sink, STDOUT_FILENO);
 
+    string program_path = env.FindProgramPath(words[0]);
+    if (program_path.empty()) {
+        fprintf(stderr, "-clash: %s: command not found\n", words[0].c_str());
+        exit(0);
+    }
+    words[0] = program_path;
+
+    // Build argument array
     char * argv[words.size() + 1];
     for (size_t i = 0; i < words.size(); i++) {
         argv[i] = const_cast<char *>(words[i].c_str());
     }
     argv[words.size()] = NULL;
 
-    // char * program_path = env.FindProgram(argv[0]);
-
+    // Build environment variable array
     vector<string> variable_strings = env.get_export_variable_strings();
     char * envp[variable_strings.size() + 1];
     for (size_t i = 0; i < variable_strings.size(); i++) {
@@ -155,9 +162,7 @@ void Command::RunProgram(int source, int sink) {
     }
     argv[variable_strings.size()] = NULL;
 
-    // execve(argv[0], argv, envp);
-    execvp(argv[0], argv);
-
-    fprintf(stderr, "-clash: %s: command not found\n", argv[0]);
+    execve(argv[0], argv, envp);
+    fprintf(stderr, "-clash: %s: permission denied\n", argv[0]);
     exit(0);
 }

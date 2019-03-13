@@ -1,6 +1,6 @@
 #include "file-util.h"
 
-
+// TODO: return a new vector of fds instead?
 void FileUtil::CreatePipe(int fds[2]) {
     #ifdef _GNU_SOURCE
         if (pipe2(fds, O_CLOEXEC) == -1) {
@@ -72,8 +72,8 @@ vector<string> FileUtil::GetDirectoryEntries(string& path) {
             break;
         }
 
-        entries.push_back(dir->d_name);
-        debug("found directory: %s\n", dir->d_name);
+        const char * entry = dir->d_name;
+        entries.push_back(entry);
     }
 
     if (closedir(dirp) != 0) {
@@ -81,6 +81,10 @@ vector<string> FileUtil::GetDirectoryEntries(string& path) {
     }
 
     return entries;
+}
+
+bool FileUtil::IsExecutableFile(string& path) {
+    return access(path.c_str(), X_OK) == 0;
 }
 
 // TODO: this does not belong here
@@ -118,4 +122,3 @@ string FileUtil::GetUserHomeDirectory(string& user) {
     char * home_dir = pw->pw_dir;
     return string(home_dir);
 }
-

@@ -55,7 +55,7 @@ bool Command::RunBuiltin() {
         } else if (words.size() == 2) {
             FileUtil::SetCurrentWorkingDirectory(words[1]);
         } else {
-            printf("cd: too many arguments\n");
+            printf("cd: Too many arguments\n");
         }
         return true;
     }
@@ -64,7 +64,7 @@ bool Command::RunBuiltin() {
         if (words.size() == 1) {
             printf("%s\n", FileUtil::GetCurrentWorkingDirectory().c_str());
         } else {
-            printf("pwd: too many arguments\n");
+            printf("pwd: Too many arguments\n");
         }
         return true;
     }
@@ -83,7 +83,7 @@ bool Command::RunBuiltin() {
             }
             exit(status);
         } else {
-            printf("exit: too many arguments");
+            printf("exit: Too many arguments");
         }
         return true;
     }
@@ -102,7 +102,7 @@ bool Command::RunBuiltin() {
         } else if (words.size() < 3) {
             printf("set: not enough arguments");
         } else {
-            printf("set: too many arguments");
+            printf("set: Too many arguments");
         }
         return true;
     }

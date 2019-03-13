@@ -33,3 +33,28 @@ Moreover, the two versions of bash produce different output in these cases...
 "reparsed from scratch" is also a lie
 echo `echo '$PATH'` should output the content of variable path if that was true,
 instead it outputs $PATH exactly
+
+
+
+// 3/12 7pm remaining things to implement:
+
+- initialize variables on start, including special variables like $#, $0, etc.
+- move command substitutions to be inside "commands" - meaning commands will 
+have a way to store arbitrary number of jobs + where the words should be inserted, which
+could be inside of a word
+---> additionally, we need some method to parse words (& *-style expansions) only, from the output of these commands.  Decompose out from Job Parser, probably
+----> this ALSO applies to output from variables
+- cleanup around job_parser, and handling a few edge cases better/more elegantly if possible.
+- path expansions in general, i.e. *,?,[]
+- exit status
+- more error handling in general
+---> A few particular errors in job-parser (e.g. endline in |, several easy ways to fix but may add state or redundant code...)
+
+
+
+Specific argument re: | issue:
+At final end of line, if we had a previous job... we CAN'T know if it .... wait
+WRONG: we can.  If the previous command ENDED, it will have pushed itself onto the stack.  The only way it could have ended are | and ;.  If it was ;, then we wouldn't be in the same pipeline.  Therefore, if we are an empty command & in this same pipeline, we require more input.
+
+
+

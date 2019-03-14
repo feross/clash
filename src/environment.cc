@@ -2,6 +2,8 @@
 
 extern char **environ;
 
+static const string DEFAULT_ENV_VARIABLE_VALUE = "";
+
 Environment::Environment() {
     // Inherit environment variables from parent process
     int i = 0;
@@ -17,12 +19,10 @@ Environment::Environment() {
 }
 
 const string& Environment::GetVariable(const string& name) {
-    static const string default_value = "";
-
     if (variables.count(name)) {
         return variables[name];
     } else {
-        return default_value;
+        return DEFAULT_ENV_VARIABLE_VALUE;
     }
 }
 

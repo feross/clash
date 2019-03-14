@@ -125,7 +125,7 @@ ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, 
                 } else if (next_word_redirects_out) {
                     throw SyntaxErrorParseException("no file given for output redirection");
                 }
-                    throw SyntaxErrorParseException(job_str_copy[match_index]);
+                throw SyntaxErrorParseException(job_str_copy[match_index]);
             }
         }
 

@@ -155,7 +155,8 @@ bool FileUtil::GlobMatch(const string& pattern, const string& name) {
             char c = pattern[px];
             switch (c) {
                 case '?': { // Single-character wildcard
-                    if (nx < name.length()) {
+                    if (nx < name.length()
+                        && (nx > 0 || c != '.')) { // Don't match leading dot in hidden file name
                         px++;
                         nx++;
                         continue;
@@ -163,13 +164,15 @@ bool FileUtil::GlobMatch(const string& pattern, const string& name) {
                     break;
                 }
                 case '*': { // Zero-or-more-character wildcard
-                    // Method for making star matching run in linear time. Try
-                    // to match at nx. If that doesn't work out, restart at nx+1
-                    // next.
-                    nextPx = px;
-                    nextNx = nx + 1;
-                    px++;
-                    continue;
+                    if (nx > 0 || c != '.') { // Don't match leading dot in hidden file name
+                        // Try to match at nx. If that doesn't work out, restart
+                        // at nx+1 next.
+                        nextPx = px;
+                        nextNx = nx + 1;
+                        px++;
+                        continue;
+                    }
+                    break;
                 }
                 case '[': { // Start of character class
                     if (inCharClass) {
@@ -262,7 +265,7 @@ bool FileUtil::GlobMatch(const string& pattern, const string& name) {
         // Mismatch. Maybe restart.
         // For more information about this strategy which allows star matching
         // to run in real-time, see this blog post: https://research.swtch.com/glob
-        if (0 < nextNx && nextNx <= name.length()) {
+        if (nextNx > 0 && nextNx <= name.length()) {
             px = nextPx;
             nx = nextNx;
             charClass.clear();

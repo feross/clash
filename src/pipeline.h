@@ -25,7 +25,16 @@ class Pipeline {
         /**
          * Run the pipeline and wait for all the commands contained within to
          * finish running. This runs all the commands that make up the pipeline
-         * simultaneously and waits for them all to finish running.
+         * simultaneously and blocks until all of them finish running.
+         *
+         * The given arguments, pipeline_source and pipeline_sink, are used to
+         * configure the stdin of the first process and the stdout of the last
+         * process, respectively.
+         *
+         * @param pipeline_source The file descriptor to use as stdin to the first
+         *                        command in the pipeline
+         * @param pipeline_sink   The file descriptor to use as the stdout of the
+         *                        final command in the pipeline
          */
         void RunAndWait(int pipeline_source = STDIN_FILENO, int pipeline_sink = STDOUT_FILENO);
 

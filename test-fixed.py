@@ -282,7 +282,6 @@ class TestMain(unittest.TestCase):
         self.assertEqual("", runWithArgs("-c", "exit 44"))
         self.assertEqual(44, status)
 
-    # TODO: parser bug
     def test_main_script_file_basics(self):
         os.makedirs("__test");
         writeFile("__test/script", "/bin/echo 'foo\nbar'\n/bin/echo second command")
@@ -294,7 +293,6 @@ class TestMain(unittest.TestCase):
                 runWithArgs("_bogus_/xyzzy"))
         self.assertEqual(127, status)
 
-    # TODO: parser bug
     def test_main_script_file_exit_status(self):
         os.makedirs("__test");
         writeFile("__test/script", "/bin/echo command output\nexit 32\n    \n")
@@ -489,7 +487,6 @@ class TestParser(unittest.TestCase):
         self.assertEqual("abc\n", readFile("__test/out1"))
         self.assertEqual("def\n", readFile("__test/out2"))
 
-    # TODO: parser needs variables implemented
     def test_breakAndAppend(self):
         self.assertEqual("Word 1: .abc\nWord 2: def\nWord 3: x\nWord 4: y.\n",
                 run("x='abc def\tx\ny'; ./words.py .$x."))

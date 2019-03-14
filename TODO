@@ -1,9 +1,3 @@
-Feross Todo:
-
-- If pipeline has one or more built-ins and one or more commands, just run the commands
-
-
-
 Other stuff:
 Re: problem with call stack as state w/ incomplete commands - just decompose out the functionality
 that allows scanning for end characters, then force full command to be given when constructing job.
@@ -43,7 +37,7 @@ could be inside of a word
 ----> this ALSO applies to output from variables
 - path expansions in general, i.e. *,?,[]
 - exit status
-- more error handling in general 
+- more error handling in general
 - cleanup around job_parser, and handling a few edge cases better/more elegantly if possible.
 ---> A few particular errors in job-parser (e.g. endline in |, several easy ways to fix but may add state or redundant code...)
 - variables seem to be creating spaces, specificaly when run from file, investigate

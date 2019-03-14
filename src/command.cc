@@ -11,12 +11,6 @@ Command::Command(ParsedCommand parsed_command, Environment& env) :
 }
 
 void Command::Run(int source, int sink) {
-    //TODO: run any injected jobs
-    // before doing any of this
-    //for (struct InjectedWord& iword : injected_words) {
-    //    //RUN & INJECT
-    //    //Construct normal "words" using output
-    //}
     bool isBuiltin = RunBuiltin();
     if (!isBuiltin) {
         RunProgram(source, sink);
@@ -24,7 +18,6 @@ void Command::Run(int source, int sink) {
 }
 
 void Command::Wait() {
-    // TODO: check for error
     int status;
     waitpid(pid, &status, 0);
     env.SetVariable("?", to_string(WEXITSTATUS(status)));
@@ -111,7 +104,6 @@ bool Command::RunBuiltin() {
         return true;
     }
 
-    // TODO: hack, remove once parser sends "set" correctly
     if (program.find("=") != string::npos) {
         vector<string> res = StringUtil::Split(program, "=");
         env.SetVariable(res[0], res[1]);

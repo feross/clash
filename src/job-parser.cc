@@ -393,7 +393,7 @@ string JobParser::ParseTilde(string& job_str_copy, Environment& env) {
         //just expand tilde w/o username. As per spec, this is default var
         return env.get_variable("HOME");
     }
-    string home_dir = FileUtil::GetUserHomeDirectory(matched_str);
+    string home_dir = ProcUtil::GetUserHomeDirectory(matched_str);
     if (home_dir == "") {
         //no user found, just use literal tilde & consume no input
         return string("~");

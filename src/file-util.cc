@@ -35,19 +35,19 @@ void FileUtil::DuplicateDescriptor(int new_fd, int old_fd) {
     }
 }
 
-int FileUtil::OpenFile(string& filePath, int flags, mode_t mode) {
-    int fd = open(filePath.c_str(), flags | O_CLOEXEC, mode);
+int FileUtil::OpenFile(string& file_path, int flags, mode_t mode) {
+    int fd = open(file_path.c_str(), flags | O_CLOEXEC, mode);
     if (fd == -1) {
-        throw FileException("No such file or directory: " + filePath);
+        throw FileException("No such file or directory: " + file_path);
     }
     return fd;
 }
 
-string FileUtil::ReadFileDescriptor(int descriptor) {
+string FileUtil::ReadFileDescriptor(int fd) {
     string contents = string();
     char buf[1024 + 1];
     int read_bytes;
-    while ((read_bytes = read(descriptor, buf, 1024)) != 0) {
+    while ((read_bytes = read(fd, buf, 1024)) != 0) {
         buf[read_bytes] = '\0';
         contents.append(buf);
     }
@@ -306,38 +306,4 @@ bool FileUtil::IsDirectory(const string& path) {
         throw FileException(strerror(errno));
     }
     return stat_result.st_mode & S_IFDIR;
-}
-
-// TODO: this does not belong here
-pid_t FileUtil::CreateProcess() {
-    pid_t pid = fork();
-    if (pid == -1) {
-        throw FileException("Unable to create new process");
-    }
-    return pid;
-}
-
-void FileUtil::SetCurrentWorkingDirectory(const string& new_cwd) {
-    if (chdir(new_cwd.c_str()) == -1) {
-        throw FileException(new_cwd + ": No such file or directory");
-    }
-}
-
-string FileUtil::GetCurrentWorkingDirectory() {
-    char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        throw FileException(cwd + string(": No such file or directory"));
-    }
-    return string(cwd);
-}
-
-string FileUtil::GetUserHomeDirectory(const string& user) {
-    passwd * pw = getpwnam(user.c_str());
-
-    if (pw == NULL) {
-        return "";
-    }
-
-    char * home_dir = pw->pw_dir;
-    return string(home_dir);
 }

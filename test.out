@@ -93,7 +93,7 @@ FAIL: test_parse_variables (__main__.TestParser)
 Traceback (most recent call last):
   File "test-fixed.py", line 407, in test_parse_variables
     run("/bin/echo ${xxx"))
-AssertionError: "unexpected EOF while looking for `}'" not found in '{xxx\n'
+AssertionError: "unexpected EOF while looking for `}'" not found in '-clash: syntax error: unexpected end of file\n'
 
 ======================================================================
 FAIL: test_rebuildPathMap_basics (__main__.TestPipeline)
@@ -136,6 +136,6 @@ Traceback (most recent call last):
 AssertionError: ' x: command not found\n__test/x' not found in '/Users/feross/Documents/Stanford/CS190/proj3-5\n-clash: Unable to open directory /__test\n'
 
 ----------------------------------------------------------------------
-Ran 79 tests in 2.703s
+Ran 79 tests in 2.854s
 
 FAILED (failures=17)

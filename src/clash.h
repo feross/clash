@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "arguments.h"
-#include "job.h"
 #include "log.h"
 #include "shell.h"
 

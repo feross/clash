@@ -1,85 +1,48 @@
 #include "shell.h"
 
+Shell::Shell(int argc, char* argv[]) {
+    env.set_variable("0", argv[0]);
+    env.set_variable("?", "0");
 
-
-Shell::Shell(Environment& env) : env(env) {}
-
-// TODO: this should throw an exception that is handled by clash.cc and the printing
-// should happen there
-bool Shell::ParseStringIntoJob(string& job_str) {
-    // TODO: splitting on newlines should be handled by the parser
-    // vector<string> lines = StringUtil::Split(job_str, "\n");
-    // for (string& line : lines) {
-    //     Job job(line, env);
-    //     try {
-    //         debug("%s", job.ToString().c_str());
-    //         job.RunAndWait();
-    //     } catch (exception& err) {
-    //         printf("-clash: %s\n", err.what());
-    //     }
-    // }
-    // string remaining_job_str(job_str);
-    // while (remaining_job_str.size() > 0) {
-    //     if (jobs_to_run.empty() || jobs_to_run.back().complete) { //short circ
-    //         jobs_to_run.push_back(Job());
-    //     }
-    //     Job& last_job = jobs_to_run.back();
-    //     remaining_job_str = last_job.IngestLine(remaining_job_str);
-    // }
-    // if (jobs_to_run.empty() || jobs_to_run.back().complete) {
-    //     return true; //completed, ready to run
-    // }
-    // return false;
-    //TODO: I think b/c we only parse completed commands, there can only be one job
-    //UNLESS someone uses this parse mutliple times without running the parsed jobs
-    try {
-        if (job_parser.IsPartialJob(job_str, env)) {
-            return false; // incomplete job
-        } else {
-            ParsedJob parsed_job = job_parser.Parse(job_str, env);
-            jobs_to_run.push_back(Job(parsed_job, env));
+    int command_flag_index = -1;
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--command") == 0) {
+            command_flag_index = i;
+            break;
         }
-    } catch (exception& e) {
-        printf("-clash: %s\n", e.what());
-        return true; // did parse, into nothing (was invalid)
     }
-    return true; //completely & validly parsed
+
+    int vars_start = command_flag_index + 2;
+    int total_vars = argc - vars_start - 1;
+    if (total_vars < 0) {
+        total_vars = 0;
+    }
+    env.set_variable("#", to_string(total_vars));
+
+    string all_args;
+    for (int i = 0; i < argc - vars_start; i++) {
+        string argument = string(argv[vars_start + i]);
+        env.set_variable(to_string(i), argument);
+        if (i != 1) all_args.append(" ");
+        if (i != 0) all_args.append(argument);
+    }
+    env.set_variable("*", all_args);
 }
 
 bool Shell::ParseString(string& job_str) {
     try {
         if (job_parser.IsPartialJob(job_str, env)) {
+            // Return failure if this An incomplete job is considered a failure, since the job
             return false; // treat partial jobs as failure
         } else {
             ParsedJob parsed_job = job_parser.Parse(job_str, env);
-            jobs_to_run.push_back(Job(parsed_job, env));
+            jobs.push_back(Job(parsed_job, env));
         }
     } catch (exception& e) {
         printf("-clash: %s\n", e.what());
         return false; //did parse, into nothing (was invalid)
     }
     return true; //completely & validly parsed
-}
-
-// void Shell::ParseStringIntoJobs(const char * job_str) {
-//     const string job_string = job_str;
-//     ParseStringIntoJobs(job_string);
-// }
-
-int Shell::RunJobsAndWait() {
-    for (Job& job : jobs_to_run) {
-        try {
-            debug("%s", job.ToString().c_str());
-            job.RunAndWait();
-        } catch (exception& err) {
-            printf("-clash: %s\n", err.what());
-            jobs_to_run.clear();
-            return -1;
-        }
-    }
-    jobs_to_run.clear();
-
-    return 0;
 }
 
 bool Shell::ParseFile(const string& file_path) {
@@ -103,10 +66,25 @@ bool Shell::ParseFile(const string& file_path) {
     return ParseString(job_str);
 }
 
+bool Shell::RunJobsAndWait() {
+    for (Job& job : jobs) {
+        try {
+            debug("%s", job.ToString().c_str());
+            job.RunAndWait();
+        } catch (exception& err) {
+            printf("-clash: %s\n", err.what());
+            jobs.clear();
+            return false;
+        }
+    }
+    jobs.clear();
+    return true;
+}
+
 int Shell::StartRepl() {
     bool isTTY = isatty(STDIN_FILENO);
     debug("isTTY: %d", isTTY);
-    string remaining_job_str = string();
+    string remaining_job_str;
     while (true) {
         char * prompt = NULL;
         if (isTTY) {
@@ -122,18 +100,27 @@ int Shell::StartRepl() {
         remaining_job_str.append("\n");
         free(line);
 
-        // printf("str:%s\n", remaining_job_str.c_str());
-        if (ParseStringIntoJob(remaining_job_str)) {
-            RunJobsAndWait();
-            // TODO: make this string cleared in a consistent place
-            remaining_job_str = string();
+        try {
+            if (job_parser.IsPartialJob(remaining_job_str, env)) {
+                // Incomplete job, so get more input from user
+                continue;
+            } else {
+                ParsedJob parsed_job = job_parser.Parse(remaining_job_str, env);
+                jobs.push_back(Job(parsed_job, env));
+            }
+        } catch (exception& e) {
+            // Parsed the complete job, but it was invalid
+            printf("-clash: %s\n", e.what());
         }
+
+        RunJobsAndWait();
+        remaining_job_str = string();
     }
 
     if (!remaining_job_str.empty()) {
         printf("-clash: syntax error: unexpected end of file\n");
         return 2;
     }
-    return atoi(env.get_variable("?").c_str());
-}
 
+    return stoi(env.get_variable("?"));
+}

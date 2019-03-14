@@ -303,7 +303,7 @@ string JobParser::ParseVariable(string& job_str_copy, Environment& env) {
         string unmodified("$");
         return unmodified;
     }
-    string var_value = env.get_variable(variable_name);
+    string var_value = env.GetVariable(variable_name);
     job_str_copy = var_value + job_str_copy;
 
     /**
@@ -373,7 +373,7 @@ string JobParser::ParseTilde(string& job_str_copy, Environment& env) {
     string matched_str = job_str_copy.substr(0,match_index);
     if (matched_str.size() == 0) {
         //just expand tilde w/o username. As per spec, this is default var
-        return env.get_variable("HOME");
+        return env.GetVariable("HOME");
     }
     string home_dir = ProcUtil::GetUserHomeDirectory(matched_str);
     if (home_dir == "") {

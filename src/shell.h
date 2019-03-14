@@ -32,6 +32,12 @@ using namespace std;
 
 class Shell {
     public:
+        /**
+         * Create a new shell instance.
+         *
+         * @param argc The number of arguments that the shell was started with
+         * @param argv Array of strings representing arguments the shell was started with
+         */
         Shell(int argc, char* argv[]);
 
         /**
@@ -88,8 +94,8 @@ class Shell {
         int StartRepl();
     private:
         /**
-         * Object that represents the local shell environment that all jobs will
-         * run within. Stores environment variables and the PATH cache.
+         * The local shell environment. Stores environment variables and the
+         * PATH cache.
          */
         Environment env;
 

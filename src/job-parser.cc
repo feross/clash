@@ -104,7 +104,12 @@ ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, 
             if (match_index == job_str_copy.size()) {
                 throw SyntaxErrorParseException("syntax error near unexpected newline");
             } else if (string("\n;|<>").find(job_str_copy[match_index]) != string::npos) {
-                throw SyntaxErrorParseException("no file given for output redirection");
+                if (next_word_redirects_in) {
+                    throw SyntaxErrorParseException("no file given for input redirection");
+                } else if (next_word_redirects_out) {
+                    throw SyntaxErrorParseException("no file given for output redirection");
+                }
+                    throw SyntaxErrorParseException(job_str_copy[match_index]);
             }
         }
 

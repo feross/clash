@@ -98,10 +98,11 @@ class SyntaxErrorParseException : public FatalParseException {
     public:
         SyntaxErrorParseException(const string& message): message(message) {}
         SyntaxErrorParseException(const char* message): message(message) {}
-        SyntaxErrorParseException(const char ch): message(string(1, ch)) {}
-        const char* what() const noexcept {
-            return ("syntax error near unexpected token \'" + message + "\'").c_str();
+        SyntaxErrorParseException(const char ch) {
+            message = ("syntax error near unexpected token \'" +
+                string(1, ch) + "\'").c_str();
         }
+        const char* what() const noexcept { return message.c_str(); }
     private:
         string message;
 };
@@ -118,7 +119,7 @@ class JobParser {
         // avoid executing command substitutions within partial commands
         static ParsedJob Parse(string& job_str, Environment& env);
     private:
-        static ParsedJob Parse(string& job_str, Environment& env, 
+        static ParsedJob Parse(string& job_str, Environment& env,
             bool should_execute);
         static ParsedPipeline ParsePipeline(string& job_str_copy,
             Environment& env, bool should_execute);

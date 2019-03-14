@@ -66,7 +66,7 @@ ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, 
         int match_index = strcspn(job_str_copy.c_str(), " \t\n;|<>~$'`\"\\");
         if (match_index != 0) partial_word.append(job_str_copy.substr(0,match_index));
 
-        //word breaking 
+        //word breaking
         if (match_index == job_str_copy.size() ||
           string("\t\n ;|<>").find(job_str_copy[match_index]) != string::npos) {
             if (partial_word.size() > 0 || quote_word) { //word exists
@@ -97,14 +97,14 @@ ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, 
             }
             pipeline.commands.push_back(command);
             command.clear();
-        } 
+        }
 
         //redirected words
         if (next_word_redirects_in || next_word_redirects_out) {
             if (match_index == job_str_copy.size()) {
-                throw SyntaxErrorParseException("newline");
+                throw SyntaxErrorParseException("syntax error near unexpected newline");
             } else if (string("\n;|<>").find(job_str_copy[match_index]) != string::npos) {
-                throw SyntaxErrorParseException(job_str_copy[match_index]);
+                throw SyntaxErrorParseException("no file given for output redirection");
             }
         }
 

@@ -268,7 +268,7 @@ class TestMain(unittest.TestCase):
         writeFile("__test/script", "/bin/echo $0 $1 $2 '|' $# '|' $*")
         self.assertEqual("__test/script a b | 3 | a b c\n",
                 runWithArgs("__test/script", "a", "b", "c"))
-        self.assertEqual("0 | |\n",
+        self.assertEqual("0 | " + shell + " |\n",
                 run("/bin/echo $# '|' $0 $1 '|' $*"))
 
     def test_main_c_option_basics(self):

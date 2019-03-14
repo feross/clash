@@ -1,4 +1,4 @@
-....................FF...FF...F.F...F...F..F..FF.FF.F..F......F.FF..F.FF.......
+....................FF...F....F.F...F...F..F..FF.FF.F..F......F.FF..F.FF.......
 ======================================================================
 FAIL: test_matchString_asterisk (__main__.TestExpand)
 ----------------------------------------------------------------------
@@ -22,14 +22,6 @@ Traceback (most recent call last):
   File "test-fixed.py", line 212, in test_matchString_question_mark
     self.assertEqual("__tes?/x?z\n", run('/bin/echo __tes?/x\?z'))
 AssertionError: '__tes?/x?z\n' != '__test/xyz\n'
-
-======================================================================
-FAIL: test_loadArgs (__main__.TestMain)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "test-fixed.py", line 272, in test_loadArgs
-    run("/bin/echo $# '|' $0 $1 '|' $*"))
-AssertionError: '0 | |\n' != '0 | ./clash |\n'
 
 ======================================================================
 FAIL: test_main_script_file_basics (__main__.TestMain)
@@ -168,6 +160,6 @@ Traceback (most recent call last):
 AssertionError: ' x: command not found\n__test/x' not found in '/Users/feross/Documents/Stanford/CS190/proj3-5\n-clash: Unable to open directory /__test\n'
 
 ----------------------------------------------------------------------
-Ran 79 tests in 2.631s
+Ran 79 tests in 2.634s
 
-FAILED (failures=21)
+FAILED (failures=20)

@@ -11,8 +11,7 @@ void Pipeline::RunAndWait(int pipeline_source, int pipeline_sink) {
         return;
     }
 
-    int fds[2];
-    FileUtil::CreatePipe(fds);
+    vector<int> fds = FileUtil::CreatePipe();
     int command_sink = fds[1];
     int command_source = fds[0];
 
@@ -21,7 +20,7 @@ void Pipeline::RunAndWait(int pipeline_source, int pipeline_sink) {
 
     for (size_t i = 1; i < commands.size() - 1; i++) {
         command_source = fds[0];
-        FileUtil::CreatePipe(fds);
+        fds = FileUtil::CreatePipe();
         command_sink = fds[1];
 
         commands[i].Run(command_source, command_sink);

@@ -1,7 +1,6 @@
 #include "job.h"
 
 Job::Job(ParsedJob& parsed_job, Environment& env) : env(env) {
-
     for (ParsedPipeline& parsed_pipeline : parsed_job.pipelines) {
         vector<Command> commands;
 
@@ -26,7 +25,7 @@ void Job::RunAndWait(int job_source, int job_sink) {
     // }
     if (pipelines.size() == 0) return;
     pipelines[0].RunAndWait(job_source, job_sink);
-    //assumes follow will work, because it already did the first time & 
+    //assumes follow will work, because it already did the first time &
     // string is identical
     ParsedJob latter = job_parser.Parse(parsed_pipelines[0].remaining_job_str, env);
     Job updated_job(latter, env);
@@ -41,24 +40,3 @@ string Job::ToString() {
     }
     return result;
 }
-
-// void Job::Parse(string& job_str) {
-
-//     //TODO: Merge this into the constructor... AND MOVE THE JOB_PARSER HERE
-//     // -> The division between the job parser & job doesn't really make sense
-//     // and feels very pass-through in general...
-
-//     ParsedJob parsed_job = job_parser.Parse(job_str);
-
-//     for (ParsedPipeline& parsed_pipeline : parsed_job.pipelines) {
-//         vector<Command> commands;
-
-//         for (ParsedCommand& parsed_command : parsed_pipeline.commands) {
-//             Command command(parsed_command, env);
-//             commands.push_back(command);
-//         }
-
-//         Pipeline pipeline(commands);
-//         pipelines.push_back(pipeline);
-//     }
-// }

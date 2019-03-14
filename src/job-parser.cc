@@ -368,7 +368,7 @@ string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO
         if (match_index == string::npos) {
 
             throw IncompleteParseException("Incomplete job given, no valid closing (})");
-        } 
+        }
         variable_name = job_str_copy.substr(1,match_index-1); //skip first
         job_str_copy = job_str_copy.substr(match_index + 1); //MODJOBSTR
     } else if (isalpha(first_var_char)) {
@@ -406,15 +406,14 @@ string JobParser::ParseBacktick(string& job_str_copy, Environment& env,
             if (should_execute) {
                 string command_output_str;
                 try {
-                    int fds[2];
-                    FileUtil::CreatePipe(fds);
+                    vector<int> fds = FileUtil::CreatePipe();
                     int read = fds[0];
                     int write = fds[1];
                     ParsedJob parsed_job = Parse(quoted, env);
                     Job(parsed_job, env).RunAndWait(STDIN_FILENO, write);  //TODO redirect this to put inside our string
                     // Job(quoted, env).RunAndWait(STDIN_FILENO, STDOUT_FILENO);  //TODO redirect this to put inside our string
                     FileUtil::CloseDescriptor(write);
-                    command_output_str = FileUtil::DumpDescriptorIntoString(read);
+                    command_output_str = FileUtil::ReadFileDescriptor(read);
                     FileUtil::CloseDescriptor(read);
 
                     //bash special cases this (compare bash printf v.s. echo

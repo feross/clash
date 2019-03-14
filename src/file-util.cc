@@ -1,7 +1,7 @@
 #include "file-util.h"
 
-// TODO: return a new vector of fds instead?
-void FileUtil::CreatePipe(int fds[2]) {
+vector<int> FileUtil::CreatePipe() {
+    int fds[2];
     #ifdef _GNU_SOURCE
         if (pipe2(fds, O_CLOEXEC) == -1) {
             throw FileException("Failed to create pipe");
@@ -16,6 +16,10 @@ void FileUtil::CreatePipe(int fds[2]) {
             throw FileException("Failed to configure pipe");
         }
     #endif
+
+    vector<int> fds_vec;
+    fds_vec.assign(fds, fds + 2);
+    return fds_vec;
 }
 
 void FileUtil::CloseDescriptor(int fd) {
@@ -39,7 +43,7 @@ int FileUtil::OpenFile(string& filePath, int flags, mode_t mode) {
     return fd;
 }
 
-string FileUtil::DumpDescriptorIntoString(int descriptor) {
+string FileUtil::ReadFileDescriptor(int descriptor) {
     string contents = string();
     char buf[1024 + 1];
     int read_bytes;

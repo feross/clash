@@ -29,8 +29,6 @@ class Job {
          *                by the user.
          */
         Job(ParsedJob& job, Environment& env);
-        // Job(char * job_str, Environment& env) :
-        //     Job(string(job_str), env) {};
 
         /**
          * Run the job, including all pipelines and commands contained within.
@@ -43,7 +41,7 @@ class Job {
         void RunAndWait(int job_source = STDIN_FILENO, int job_sink = STDOUT_FILENO);
 
         /**
-         * Print a readable string representation of the job, including the
+         * Returns a readable string representation of the job, including the
          * contained pipelines and commands.
          */
         string ToString();

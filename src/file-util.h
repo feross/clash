@@ -34,10 +34,50 @@ class FileException : public exception {
 
 class FileUtil {
     public:
-        static void CreatePipe(int fds[2]);
+        /**
+         * Creates a pipe, a unidirectional data channel that can be used for
+         * interprocess communication and returns the two newly-allocated file
+         * descriptors in a vector. The pipe is configured with O_CLOEXEC so it
+         * will be automatically closed when execve() is called.
+         *
+         * Throws a FileException if the pipe cannot be created or configured
+         * correctly.
+         *
+         * @return vector that contains exactly two file descriptors
+         */
+        static vector<int> CreatePipe();
+
+        /**
+         * Closes a file descriptor, so that it no longer refers to any file and
+         * may be reused.
+         *
+         * Throws a FileException if the file cannnot be closed for any reason.
+         *
+         * @param fd Integer representing the file descriptor to close
+         */
         static void CloseDescriptor(int fd);
+
+        /**
+         * Creates a copy of the file descriptor old_fd, using the descriptor
+         * number specified in new_fd. If the file descriptor new_fd was
+         * previously open, it is silently closed before being reused. After a
+         * successful return, the old and new file descriptors may be used
+         * interchangeably. They literally refer to the same open file
+         * description.
+         *
+         * Throws a FileException if the file descriptor cannot be duplicated.
+         *
+         * @param new_fd The file descriptor to be closed and overwritten
+         * @param old_fd The file descriptor to be duplicated
+         */
         static void DuplicateDescriptor(int new_fd, int old_fd);
-        static string DumpDescriptorIntoString(int descriptor);
+
+        /**
+         * [ReadFileDescriptor description]
+         * @param  fd [description]
+         * @return            [description]
+         */
+        static string ReadFileDescriptor(int fd);
 
         /**
          * TODO

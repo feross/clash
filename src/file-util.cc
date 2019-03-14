@@ -130,6 +130,11 @@ vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
         current_matches = next_matches;
     }
 
+    // If pattern matched no files, return the pattern as-is.
+    if (current_matches.size() == 0) {
+        current_matches.push_back(glob_pattern);
+    }
+
     return current_matches;
 }
 

@@ -1,4 +1,4 @@
-....................FF...F....F.F...F...F..F..FF.FF.F..F......F.FF..F.FF.......
+....................FF...F....F.F...F...F..F..F..FF....F......F.FF..F.FF.......
 ======================================================================
 FAIL: test_matchString_asterisk (__main__.TestExpand)
 ----------------------------------------------------------------------
@@ -72,14 +72,6 @@ Traceback (most recent call last):
 AssertionError: 'Unexpected EOF while parsing backslash' not found in '-clash: syntax error: unexpected end of file\n'
 
 ======================================================================
-FAIL: test_parse_backslashes_in_quotes (__main__.TestParser)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "test-fixed.py", line 443, in test_parse_backslashes_in_quotes
-    run("x=99; /bin/echo \"a\\$x\\`b\\\"c\\\\d\\\ne\\a\""))
-AssertionError: 'a$x`b"c\\d\ne\\a\n' != 'a$x`b"c\\dea\n'
-
-======================================================================
 FAIL: test_parse_commands_basics (__main__.TestParser)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
@@ -94,14 +86,6 @@ Traceback (most recent call last):
   File "test-fixed.py", line 430, in test_parse_commands_errors
     run("/bin/echo `foo bar"))
 AssertionError: "Unexpected EOF while looking for matching ``'" not found in '-clash: syntax error: unexpected end of file\n'
-
-======================================================================
-FAIL: test_parse_double_quotes (__main__.TestParser)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "test-fixed.py", line 401, in test_parse_double_quotes
-    run("x=abc; ./words.py \"a\\b\$x\""))
-AssertionError: 'Word 1: a\\b$x\n' != 'Word 1: ab$x\n'
 
 ======================================================================
 FAIL: test_parse_variables (__main__.TestParser)
@@ -160,6 +144,6 @@ Traceback (most recent call last):
 AssertionError: ' x: command not found\n__test/x' not found in '/Users/feross/Documents/Stanford/CS190/proj3-5\n-clash: Unable to open directory /__test\n'
 
 ----------------------------------------------------------------------
-Ran 79 tests in 2.634s
+Ran 79 tests in 2.617s
 
-FAILED (failures=20)
+FAILED (failures=18)

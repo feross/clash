@@ -272,27 +272,15 @@ string JobParser::ParseBackslash(string& job_str_copy, char mode) {
         string valid_matches("`");
         if (valid_matches.find(quoted) == string::npos) {
             string unmodified("\\");
-            //newer TODO: bash actually seems to do the old behavior - e.g. echo `\\` is a complete command according to bash
-            // -> so should actually allow escaping of \ by \.
-            // unmodified.append(quoted); //TODO: WRONG to leave in, I think - e.g. double backslash, shouldn't consume second backslack
-            //TODO: confirm this was right to comment out (i.e. instead output single
-            // backslash & leave next char inside the job_str_copy in case it's special
-            // job_str_copy = job_str_copy.substr(1); //tested - bash does this, not what the spec says
             return unmodified;
         }
-        //TODO: bash actually behaves incorrectly/differently than ousterhout's code
-        //namely, bash will consider something like echo `echo \\` a complete command, even
-        //though according to spec that first backslashs should be ignored while scanning for end
-        //and the second one should cause the last ` not to match
         job_str_copy = job_str_copy.substr(1);
         return quoted;
     }
     throw IncompleteParseException("Unknown backslash mode", '\\');
 }
 
-//TODO: parse whitespace on return IF AND ONLY IF this is in main unquoted lines
-//    ---> ideally, in main thread, but then have a temp-state thing I don't love
-string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO: push at front & reparse (may introduce words)
+string JobParser::ParseVariable(string& job_str_copy, Environment& env) {
     char first_var_char = job_str_copy[0];
     string variable_name;
     if (string("*?#").find(first_var_char) != string::npos ||
@@ -304,7 +292,7 @@ string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO
         if (match_index == string::npos) {
             throw IncompleteParseException("Incomplete job given, no valid closing (})", '}');
         } 
-        variable_name = job_str_copy.substr(1,match_index-1); //skip first
+        variable_name = job_str_copy.substr(1,match_index-1); //skip first {
         job_str_copy = job_str_copy.substr(match_index + 1);
     } else if (isalpha(first_var_char)) {
         int match_index = job_str_copy.find_first_not_of(
@@ -317,26 +305,31 @@ string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO
     }
     string var_value = env.get_variable(variable_name);
     job_str_copy = var_value + job_str_copy;
-    //Bash for some reason is not OK with redirect to a variable with a space,
-    //even though it's supposed to parse into words... and it's fine with you
-    //giving the same thing as multiple words
+
+    /**
+     * Bash for some reason is not OK with redirect to a variable with a space,
+     * even though it's supposed to parse into words... and it's fine with you
+     * giving the same thing as multiple words.
+     * Better handling option:
+     * return word containing full variable, and parse in the returning context
+     * for spaces only (would be relatively easy, even just split - TODO)
+     */
     if (var_value.find(" \t\n") != string::npos) {
         return string("ambiguous if redirect");
     }
     return string();
 }
 
-//TODO: parse whitespace on return IF AND ONLY IF this is in main unquoted lines
-//    ---> ideally, in main thread, but then have a temp-state thing I don't love
+
 string JobParser::ParseBacktick(string& job_str_copy, Environment& env,
-        bool should_execute) { //TODO: push at front & reparse (may introduce words)
+        bool should_execute) {
     string quoted = string();
     int match_index;
     while((match_index = strcspn(job_str_copy.c_str(), "`\\")) != job_str_copy.size()) {
         char matched = job_str_copy[match_index];
         debug("strcspn loc str:%s, char:%c", job_str_copy.c_str() + match_index, matched);
         quoted.append(job_str_copy.substr(0,match_index));
-        job_str_copy = job_str_copy.substr(match_index + 1); //MODJOBSTR
+        job_str_copy = job_str_copy.substr(match_index + 1);
         if (matched == '`') {
             if (should_execute) {
                 string command_output_str;
@@ -345,40 +338,29 @@ string JobParser::ParseBacktick(string& job_str_copy, Environment& env,
                     int read = fds[0];
                     int write = fds[1];
                     ParsedJob parsed_job = Parse(quoted, env);
-                    Job(parsed_job, env).RunAndWait(STDIN_FILENO, write);  //TODO redirect this to put inside our string
-                    // Job(quoted, env).RunAndWait(STDIN_FILENO, STDOUT_FILENO);  //TODO redirect this to put inside our string
+                    Job(parsed_job, env).RunAndWait(STDIN_FILENO, write);
                     FileUtil::CloseDescriptor(write);
                     command_output_str = FileUtil::ReadFileDescriptor(read);
                     FileUtil::CloseDescriptor(read);
-
                     //bash special cases this (compare bash printf v.s. echo
                     //in command subs - should be different, isn't)
                     int end_pos = command_output_str.size() - 1;
                     if (command_output_str[end_pos] == '\n') {
                         command_output_str = command_output_str.substr(0, end_pos);
                     }
-
                 } catch (IncompleteParseException& ipe) {
-                    //TODO: probably should probably define more different errors for each
                     string subcommand_err_message("command substitution: ");
                     subcommand_err_message.append(ipe.what());
                     throw FatalParseException(subcommand_err_message);
                 } catch (FatalParseException& fpe) {
-                    //TODO: maybe just allow this to propogate?  Idk feels like I should
-                    //say that it's within a subcommand
                     string subcommand_err_message("command substitution: ");
                     subcommand_err_message.append(fpe.what());
                     throw FatalParseException(subcommand_err_message);
                 }
-                // printf("command_output_str:%s:\n", command_output_str.c_str());
-                job_str_copy = command_output_str + job_str_copy; //MODJOBSTR
+                job_str_copy = command_output_str + job_str_copy;
                 debug("new string:%s\n", job_str_copy.c_str());
             }
-            // TODO: we MUST inject here if we want to reparse from scratch
-            // otherwise can't know if we've completed a command
-            // (e.g. echo "`echo \"` isn't complete unless we run `echo \"`)
-            return string(); //TODO: we can actually just return the command
-            //to be injected, `` never returns any actual parsed content
+            return string();
         } else {
             quoted.append(ParseBackslash(job_str_copy, '`'));
         }
@@ -398,6 +380,6 @@ string JobParser::ParseTilde(string& job_str_copy, Environment& env) {
         //no user found, just use literal tilde & consume no input
         return string("~");
     }
-    job_str_copy = job_str_copy.substr(match_index); //MODJOBSTR
+    job_str_copy = job_str_copy.substr(match_index);
     return home_dir;
 }

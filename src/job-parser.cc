@@ -65,7 +65,7 @@ ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, 
     bool glob_current_word = false;
     //TODO: probably switch to "find_first_of" and "find_first_not_of" which do same thing I think
     while(true) {
-        int match_index = strcspn(job_str_copy.c_str(), " \t\n;|<>~$'`\"\\*?[");
+        int match_index = strcspn(job_str_copy.c_str(), " \t\n;|<>~$'`\"\\*?[&");
         if (match_index != 0) partial_word.append(job_str_copy.substr(0,match_index));
 
         // if (match_index != job_str_copy.size() &&
@@ -73,7 +73,7 @@ ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, 
         //     glob_current_word = true;
         //     partial_word.append(1, job_str_copy[match_index]);
         // }
-        //word breaking 
+        //word breaking
         if (match_index == job_str_copy.size() ||
           string("\t\n ;|<>").find(job_str_copy[match_index]) != string::npos) {
             if (partial_word.size() > 0 || quote_word) { //word exists
@@ -141,6 +141,13 @@ ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, 
             break;
         }
         switch(matched) {
+            case '&':
+                if (partial_word.empty() && pipeline.commands.size() > 0) {
+                    pipeline.commands.back().redirect_stderr = true;
+                } else {
+                    partial_word.append(1, matched);
+                }
+                continue;
             case '*':
             case '?':
             case '[': {
@@ -444,7 +451,6 @@ string JobParser::ParseBacktick(string& job_str_copy, Environment& env,
     throw IncompleteParseException("Incomplete job given, no valid closing backtick (`)");
 }
 
-
 string JobParser::ParseTilde(string& job_str_copy, Environment& env) {
     int match_index = job_str_copy.find_first_of("/\t\n ;|<>");
     string matched_str = job_str_copy.substr(0,match_index);
@@ -460,8 +466,3 @@ string JobParser::ParseTilde(string& job_str_copy, Environment& env) {
     job_str_copy = job_str_copy.substr(match_index); //MODJOBSTR
     return home_dir;
 }
-
-
-
-
-

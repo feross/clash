@@ -6,6 +6,7 @@ Command::Command(ParsedCommand parsed_command, Environment& env) :
     words = parsed_command.words;
     input_file = parsed_command.input_file;
     output_file = parsed_command.output_file;
+    redirect_stderr = parsed_command.redirect_stderr;
     debug("command words: %d", words.size());
 }
 
@@ -160,6 +161,9 @@ void Command::RunProgram(int source, int sink) {
 
     FileUtil::DuplicateDescriptor(source, STDIN_FILENO);
     FileUtil::DuplicateDescriptor(sink, STDOUT_FILENO);
+    if (redirect_stderr) {
+        FileUtil::DuplicateDescriptor(sink, STDERR_FILENO);
+    }
 
     string program_path = env.FindProgramPath(words[0]);
     if (program_path.empty()) {
@@ -184,6 +188,6 @@ void Command::RunProgram(int source, int sink) {
     envp[variable_strings.size()] = NULL;
 
     execve(argv[0], argv, envp);
-    fprintf(stderr, "-clash: %s: permission denied\n", argv[0]);
+    fprintf(stderr, "-clash: %s: No such file or directory\n", argv[0]);
     exit(0);
 }

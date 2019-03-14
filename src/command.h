@@ -27,6 +27,7 @@ class Command {
         vector<string> words;
         string input_file;
         string output_file;
+        bool redirect_stderr;
         pid_t pid;
         Environment& env;
 };

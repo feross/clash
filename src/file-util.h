@@ -144,6 +144,14 @@ class FileUtil {
         static bool IsDirectory(const string& path);
 
     private:
+        /**
+         * Returns true if the given pattern matches the given candidate file
+         * or directory name.
+         *
+         * @param  pattern A glob pattern
+         * @param  name    The candidate file or directory name
+         * @return True if the pattern matches the name
+         */
         static bool GlobMatch(const string& pattern, const string& name);
 };
 

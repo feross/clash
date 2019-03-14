@@ -36,6 +36,7 @@ ParsedJob JobParser::Parse(string& job_str, Environment& env, bool should_execut
     //     printf("remaining job_str:%s:\n", pipeline.remaining_job_str.c_str());
     // }
     // printf("remaining job_str:%s:\n", job_str_copy.c_str());
+    // job.print();
     return job;
 }
 
@@ -388,6 +389,13 @@ string JobParser::ParseBacktick(string& job_str_copy, Environment& env,
                     FileUtil::CloseDescriptor(write);
                     command_output_str = FileUtil::DumpDescriptorIntoString(read);
                     FileUtil::CloseDescriptor(read);
+
+                    //bash special cases this (compare bash printf v.s. echo
+                    //in command subs - should be different, isn't)
+                    int end_pos = command_output_str.size() - 1;
+                    if (command_output_str[end_pos] == '\n') {
+                        command_output_str = command_output_str.substr(0, end_pos);
+                    }
 
                 } catch (IncompleteParseException& ipe) {
                     //TODO: probably should probably define more different errors for each

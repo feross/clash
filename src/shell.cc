@@ -1,8 +1,8 @@
 #include "shell.h"
 
 Shell::Shell(int argc, char* argv[]) {
-    env.set_variable("0", argv[0]);
-    env.set_variable("?", "0");
+    env.SetVariable("0", argv[0]);
+    env.SetVariable("?", "0");
 
     int command_flag_index = -1;
     for (int i = 0; i < argc; i++) {
@@ -17,16 +17,16 @@ Shell::Shell(int argc, char* argv[]) {
     if (total_vars < 0) {
         total_vars = 0;
     }
-    env.set_variable("#", to_string(total_vars));
+    env.SetVariable("#", to_string(total_vars));
 
     string all_args;
     for (int i = 0; i < argc - vars_start; i++) {
         string argument = string(argv[vars_start + i]);
-        env.set_variable(to_string(i), argument);
+        env.SetVariable(to_string(i), argument);
         if (i != 1) all_args.append(" ");
         if (i != 0) all_args.append(argument);
     }
-    env.set_variable("*", all_args);
+    env.SetVariable("*", all_args);
 }
 
 bool Shell::ParseString(string& job_str) {

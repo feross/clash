@@ -17,11 +17,11 @@ class Environment {
         Environment();
 
         const string& GetVariable(const string& name);
-        void set_variable(const string& name, const string& value);
-        void unset_variable(const string& name);
+        void SetVariable(const string& name, const string& value);
+        void UnsetVariable(const string& name);
 
-        void export_variable(const string& name);
-        vector<string> get_export_variable_strings();
+        void ExportVariable(const string& name);
+        vector<string> GetExportVariableStrings();
 
         string FindProgramPath(string& program_name);
     private:

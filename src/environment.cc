@@ -9,8 +9,8 @@ Environment::Environment() {
         vector<string> split = StringUtil::Split(var, "=");
         string name = split[0];
         string value = split[1];
-        set_variable(name, value);
-        export_variable(name);
+        SetVariable(name, value);
+        ExportVariable(name);
     }
 
     PopulatePathCache();
@@ -26,14 +26,14 @@ const string& Environment::GetVariable(const string& name) {
     }
 }
 
-void Environment::set_variable(const string& name, const string& value) {
+void Environment::SetVariable(const string& name, const string& value) {
     variables[name] = value;
     if (name == "PATH") {
         PopulatePathCache();
     }
 }
 
-void Environment::unset_variable(const string& name) {
+void Environment::UnsetVariable(const string& name) {
     variables.erase(name);
     export_variables.erase(name);
     if (name == "PATH") {
@@ -41,13 +41,13 @@ void Environment::unset_variable(const string& name) {
     }
 }
 
-void Environment::export_variable(const string& name) {
+void Environment::ExportVariable(const string& name) {
     if (variables.count(name)) {
         export_variables.insert(name);
     }
 }
 
-vector<string> Environment::get_export_variable_strings() {
+vector<string> Environment::GetExportVariableStrings() {
     vector<string> export_variable_strings;
     for (const string& name : export_variables) {
         export_variable_strings.push_back(name + "=" + GetVariable(name));

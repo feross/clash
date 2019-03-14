@@ -27,7 +27,7 @@ void Command::Wait() {
     // TODO: check for error
     int status;
     waitpid(pid, &status, 0);
-    env.set_variable("?", to_string(WEXITSTATUS(status)));
+    env.SetVariable("?", to_string(WEXITSTATUS(status)));
 }
 
 string Command::ToString() {
@@ -93,7 +93,7 @@ bool Command::RunBuiltin() {
     }
 
     if (program == "printenv") {
-        vector<string> variable_strings = env.get_export_variable_strings();
+        vector<string> variable_strings = env.GetExportVariableStrings();
         for (string& variable_string : variable_strings) {
             printf("%s\n", variable_string.c_str());
         }
@@ -102,7 +102,7 @@ bool Command::RunBuiltin() {
 
     if (program == "set") {
         if (words.size() == 3) {
-            env.set_variable(words[1], words[2]);
+            env.SetVariable(words[1], words[2]);
         } else if (words.size() < 3) {
             printf("set: Not enough arguments");
         } else {
@@ -114,7 +114,7 @@ bool Command::RunBuiltin() {
     // TODO: hack, remove once parser sends "set" correctly
     if (program.find("=") != string::npos) {
         vector<string> res = StringUtil::Split(program, "=");
-        env.set_variable(res[0], res[1]);
+        env.SetVariable(res[0], res[1]);
         return true;
     }
 
@@ -124,7 +124,7 @@ bool Command::RunBuiltin() {
         } else {
             vector<string> names(words.begin() + 1, words.end());
             for (string& name : names) {
-                env.unset_variable(name);
+                env.UnsetVariable(name);
             }
         }
         return true;
@@ -136,7 +136,7 @@ bool Command::RunBuiltin() {
         } else {
             vector<string> names(words.begin() + 1, words.end());
             for (string& name : names) {
-                env.export_variable(name);
+                env.ExportVariable(name);
             }
         }
         return true;
@@ -180,7 +180,7 @@ void Command::RunProgram(int source, int sink) {
     argv[words.size()] = NULL;
 
     // Build environment variable array
-    vector<string> variable_strings = env.get_export_variable_strings();
+    vector<string> variable_strings = env.GetExportVariableStrings();
     char * envp[variable_strings.size() + 1];
     for (size_t i = 0; i < variable_strings.size(); i++) {
         envp[i] = const_cast<char *>(variable_strings[i].c_str());

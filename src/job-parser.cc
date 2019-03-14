@@ -4,12 +4,6 @@
 #include <cstring>
 #include <cctype>
 
-// bool JobParser::IsCompleteJob(string& job_str, Environment& env) {
-//     Parse(job_str, env, false);
-//     //throws if incomplete, because we need to determine which character caused
-//     return true;
-// }
-
 bool JobParser::IsPartialJob(string& job_str, Environment& env) {
     try {
         Parse(job_str, env, false);

@@ -82,18 +82,76 @@ class FileUtil {
         static string ReadFileDescriptor(int fd);
 
         /**
-         * TODO
+         * Open the file specified by file_path. The return value is a file
+         * descriptor, a small, nonnegative integer that is used in subsequent
+         * system calls to refer to the open file. The file descriptor returned
+         * by a successful call will be the lowest-numbered file descriptor not
+         * currently open for the process.
          *
-         * Permission flags to enable user+group+global read, and user write.
-         * In other words, these are the flags that would get set with
-         * "chmod 644".
+         * Optionally, flags and a mode can be specified which change the
+         * behavior of the opened file, e.g. opening it for reading vs. writing
+         * or setting the permissions on a newly-created file. See the standard
+         * C documentation for open() to learn more about these options.
+         *
+         * Throws a FileException if the file cannot be opened.
+         *
+         * @param file_path Filesystem path to the file to open
+         * @param flags Standard open() flags to configure the file descriptor
+         * @param mode Standard open() flags to configure the file's mode
+         * @return The newly-opened file descriptor
          */
-        static int OpenFile(string& filePath, int flags = O_RDONLY,
+        static int OpenFile(string& file_path, int flags = O_RDONLY,
             mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
+        /**
+         * Return a vector of all directory entries in the given directory path.
+         * Skips over trivial directory entries like "." and "..".
+         *
+         * Throws a FileException if the directory cannot be opened or the
+         * stream of directory entries cannot be read.
+         *
+         * @param path Filesystem path to the directory to read entries from
+         * @return Vector of strings representing directory entries
+         */
         static vector<string> GetDirectoryEntries(const string& path);
+
+        /**
+         * Get all files or diretories which match the given "glob" pattern.
+         * Glob patterns are quite similar to regular expressions but they are
+         * not quite the same. The rules for glob matching are too complex to
+         * list here, but complete information can be found online from various
+         * resources such as http://tldp.org/LDP/abs/html/globbingref.html.
+         *
+         * The search starts in the current working directory. Throws a
+         * FileException if the given pattern is invalid, e.g. it has
+         * unclosed character class.
+         *
+         * Returns a vector of all the files or directories which match the
+         * given glob pattern. If no files or directories are matched, then
+         * vector containing a single string representing the original pattern
+         * is returned.
+         *
+         * @param pattern The glob pattern to match against
+         * @return The vector of strings that represent matched files and directories
+         */
         static vector<string> GetGlobMatches(const string& pattern);
+
+        /**
+         * Returns true if the given file or directory has the executable
+         * permission bit set.
+         *
+         * @param Filesystem path to the file to check
+         * @return True if file is executable
+         */
         static bool IsExecutableFile(const string& path);
+
+        /**
+         * Returns true if the given path represents a file (as opposed to a
+         * directory).
+
+         * @param  path Filesystem path to the entry to check
+         * @return True if the given path represents a file
+         */
         static bool IsDirectory(const string& path);
 
         // TODO: this does not belong here

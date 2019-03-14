@@ -35,19 +35,19 @@ void FileUtil::DuplicateDescriptor(int new_fd, int old_fd) {
     }
 }
 
-int FileUtil::OpenFile(string& filePath, int flags, mode_t mode) {
-    int fd = open(filePath.c_str(), flags | O_CLOEXEC, mode);
+int FileUtil::OpenFile(string& file_path, int flags, mode_t mode) {
+    int fd = open(file_path.c_str(), flags | O_CLOEXEC, mode);
     if (fd == -1) {
-        throw FileException("No such file or directory: " + filePath);
+        throw FileException("No such file or directory: " + file_path);
     }
     return fd;
 }
 
-string FileUtil::ReadFileDescriptor(int descriptor) {
+string FileUtil::ReadFileDescriptor(int fd) {
     string contents = string();
     char buf[1024 + 1];
     int read_bytes;
-    while ((read_bytes = read(descriptor, buf, 1024)) != 0) {
+    while ((read_bytes = read(fd, buf, 1024)) != 0) {
         buf[read_bytes] = '\0';
         contents.append(buf);
     }

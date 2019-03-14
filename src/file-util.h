@@ -73,9 +73,11 @@ class FileUtil {
         static void DuplicateDescriptor(int new_fd, int old_fd);
 
         /**
-         * [ReadFileDescriptor description]
-         * @param  fd [description]
-         * @return            [description]
+         * Reads the complete contents of the given file descriptor fd and
+         * returns it as a string.
+         *
+         * @param  fd The file descriptor to read from
+         * @return File contents as a string
          */
         static string ReadFileDescriptor(int fd);
 

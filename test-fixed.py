@@ -14,7 +14,7 @@ import unittest
 # The location of the shell to be tested. You can change this to
 # /bin/bash to see if Bash passes this test suite.
 shell = "./clash"
-#shell = "/bin/bash"
+# shell = "/bin/bash"
 
 # This variable will hold the exit status of the most recent command
 # executed by "run"

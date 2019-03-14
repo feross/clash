@@ -266,7 +266,7 @@ string JobParser::ParseDoubleQuote(string& job_str_copy, Environment& env,
                 continue;
             }
             case '\\': {
-                quoted.append(ParseBackslash(job_str_copy));
+                quoted.append(ParseBackslash(job_str_copy, '\"'));
                 continue;
             }
             case '$': {

@@ -61,23 +61,39 @@ ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, 
     bool next_word_redirects_out = false;
     bool next_word_redirects_in = false;
     bool quote_word = false;
+    bool glob_current_word = false;
     //TODO: probably switch to "find_first_of" and "find_first_not_of" which do same thing I think
     while(true) {
-        int match_index = strcspn(job_str_copy.c_str(), " \t\n;|<>~$'`\"\\");
+        int match_index = strcspn(job_str_copy.c_str(), " \t\n;|<>~$'`\"\\*?[");
         if (match_index != 0) partial_word.append(job_str_copy.substr(0,match_index));
 
+        // if (match_index != job_str_copy.size() &&
+        //     string("*?[").find(job_str_copy[match_index]) != string::npos) {
+        //     glob_current_word = true;
+        //     partial_word.append(1, job_str_copy[match_index]);
+        // }
         //word breaking 
         if (match_index == job_str_copy.size() ||
           string("\t\n ;|<>").find(job_str_copy[match_index]) != string::npos) {
             if (partial_word.size() > 0 || quote_word) { //word exists
 
+                vector<string> words_to_add;
+                if (glob_current_word) {
+                    glob_current_word = false;
+                    words_to_add = FileUtil::GetGlobMatches(partial_word);
+                    //always at least one word
+                } else words_to_add.push_back(partial_word);
                 if (next_word_redirects_in) {
-                    command.input_file = partial_word;
+                    command.input_file = words_to_add[0];
                     next_word_redirects_in = false;
                 } else if (next_word_redirects_out) {
-                    command.output_file = partial_word;
+                    command.output_file = words_to_add[0];
                     next_word_redirects_out = false;
-                } else command.words.push_back(partial_word);
+                } else command.words.push_back(words_to_add[0]);
+
+                for (int i = 1; i < words_to_add.size(); i++) {
+                    command.words.push_back(words_to_add[i]);
+                }
                 partial_word = string();
                 quote_word = false;
             }
@@ -119,6 +135,13 @@ ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, 
             break;
         }
         switch(matched) {
+            case '*':
+            case '?':
+            case '[': {
+                glob_current_word = true;
+                partial_word.append(1, matched);
+                continue;
+            }
             case '\t':
             case ' ':
             case '\n':
@@ -189,6 +212,7 @@ ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, 
             case '$': {
                 //TODO: In this case DO parse output
                 partial_word.append(ParseVariable(job_str_copy, env));
+                // partial_word.append(ParseVariable(job_str_copy, env));
                 continue;
             }
             default : {

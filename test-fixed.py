@@ -171,10 +171,10 @@ class TestExpand(unittest.TestCase):
     def test_expandTilde(self):
         self.assertEqual("/home/ouster\n",
                 run("HOME=/home/ouster; /bin/echo ~\n"))
-        self.assertEqual("/home/ouster/xyz\n", run("/bin/echo ~/xyz\n"))
-        self.assertEqual("/home/ouster\n", run("/bin/echo ~ouster\n"))
-        self.assertEqual("/home/ouster/xyz\n", run("/bin/echo ~ouster/xyz\n"))
-        self.assertEqual("~__bogus__/xyz\n", run("/bin/echo ~__bogus__/xyz\n"))
+        self.assertEqual("/home/ouster/xyz\n", run("HOME=/home/ouster; /bin/echo ~/xyz\n"))
+        self.assertEqual("/var/root\n", run("/bin/echo ~root\n"))
+        self.assertEqual("/var/root/xyz\n", run("/bin/echo ~root/xyz\n"))
+        self.assertEqual("~__bogus__/xyz\n", run("HOME=/home/ouster; /bin/echo ~__bogus__/xyz\n"))
 
     def test_matchFiles_bad_directory(self):
         self.assertEqual("__test/bogus/*\n", run('/bin/echo __test/bogus/*'))

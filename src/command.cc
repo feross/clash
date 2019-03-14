@@ -49,7 +49,7 @@ bool Command::RunBuiltin() {
 
     if (program == "cd") {
         if (words.size() == 1) {
-            const string& home_directory = env.get_variable("HOME");
+            const string& home_directory = env.GetVariable("HOME");
             if (!home_directory.empty()) {
                 ProcUtil::SetCurrentWorkingDirectory(home_directory);
             } else {

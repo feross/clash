@@ -16,7 +16,7 @@ Environment::Environment() {
     PopulatePathCache();
 }
 
-const string& Environment::get_variable(const string& name) {
+const string& Environment::GetVariable(const string& name) {
     static const string default_value = "";
 
     if (variables.count(name)) {
@@ -50,7 +50,7 @@ void Environment::export_variable(const string& name) {
 vector<string> Environment::get_export_variable_strings() {
     vector<string> export_variable_strings;
     for (const string& name : export_variables) {
-        export_variable_strings.push_back(name + "=" + get_variable(name));
+        export_variable_strings.push_back(name + "=" + GetVariable(name));
     }
     return export_variable_strings;
 }

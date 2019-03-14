@@ -126,5 +126,5 @@ int Shell::StartRepl() {
         return 2;
     }
 
-    return stoi(env.get_variable("?"));
+    return stoi(env.GetVariable("?"));
 }

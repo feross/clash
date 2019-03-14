@@ -16,7 +16,7 @@ class Environment {
     public:
         Environment();
 
-        const string& get_variable(const string& name);
+        const string& GetVariable(const string& name);
         void set_variable(const string& name, const string& value);
         void unset_variable(const string& name);
 

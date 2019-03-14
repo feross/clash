@@ -24,10 +24,11 @@ using namespace std;
 // };
 
 struct ParsedCommand {
-    // vector<struct InjectedWord> words;
+    ParsedCommand() : redirect_stderr(false) {}
     vector<string> words;
     string input_file;
     string output_file;
+    bool redirect_stderr;
     void clear() {
         words.clear();
         input_file.clear();

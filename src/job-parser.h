@@ -2,6 +2,7 @@
 
 #include "string-util.h"
 #include "environment.h"
+#include "proc-util.h"
 
 using namespace std;
 

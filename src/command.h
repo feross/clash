@@ -10,6 +10,7 @@
 #include "job-parser.h"
 #include "file-util.h"
 #include "log.h"
+#include "proc-util.h"
 
 using namespace std;
 

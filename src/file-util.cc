@@ -307,37 +307,3 @@ bool FileUtil::IsDirectory(const string& path) {
     }
     return stat_result.st_mode & S_IFDIR;
 }
-
-// TODO: this does not belong here
-pid_t FileUtil::CreateProcess() {
-    pid_t pid = fork();
-    if (pid == -1) {
-        throw FileException("Unable to create new process");
-    }
-    return pid;
-}
-
-void FileUtil::SetCurrentWorkingDirectory(const string& new_cwd) {
-    if (chdir(new_cwd.c_str()) == -1) {
-        throw FileException(new_cwd + ": No such file or directory");
-    }
-}
-
-string FileUtil::GetCurrentWorkingDirectory() {
-    char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        throw FileException(cwd + string(": No such file or directory"));
-    }
-    return string(cwd);
-}
-
-string FileUtil::GetUserHomeDirectory(const string& user) {
-    passwd * pw = getpwnam(user.c_str());
-
-    if (pw == NULL) {
-        return "";
-    }
-
-    char * home_dir = pw->pw_dir;
-    return string(home_dir);
-}

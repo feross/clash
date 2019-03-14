@@ -51,12 +51,12 @@ bool Command::RunBuiltin() {
         if (words.size() == 1) {
             const string& home_directory = env.get_variable("HOME");
             if (!home_directory.empty()) {
-                FileUtil::SetCurrentWorkingDirectory(home_directory);
+                ProcUtil::SetCurrentWorkingDirectory(home_directory);
             } else {
                 printf("cd: HOME not set");
             }
         } else if (words.size() == 2) {
-            FileUtil::SetCurrentWorkingDirectory(words[1]);
+            ProcUtil::SetCurrentWorkingDirectory(words[1]);
         } else {
             printf("cd: Too many arguments\n");
         }
@@ -65,7 +65,7 @@ bool Command::RunBuiltin() {
 
     if (program == "pwd") {
         if (words.size() == 1) {
-            printf("%s\n", FileUtil::GetCurrentWorkingDirectory().c_str());
+            printf("%s\n", ProcUtil::GetCurrentWorkingDirectory().c_str());
         } else {
             printf("pwd: Too many arguments\n");
         }
@@ -146,7 +146,7 @@ bool Command::RunBuiltin() {
 }
 
 void Command::RunProgram(int source, int sink) {
-    pid = FileUtil::CreateProcess();
+    pid = ProcUtil::CreateProcess();
     if (pid != 0) {
         return;
     }

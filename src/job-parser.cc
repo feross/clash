@@ -361,7 +361,8 @@ string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO
         return unmodified;
     }
     string var_value = env.get_variable(variable_name);
-    return var_value;
+    job_str_copy = var_value + job_str_copy;
+    return string();
 }
 
 //TODO: parse whitespace on return IF AND ONLY IF this is in main unquoted lines

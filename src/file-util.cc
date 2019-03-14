@@ -102,8 +102,20 @@ vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
 
     for (size_t i = 0; i < pattern_segments.size(); i++) {
         string pattern_segment = pattern_segments[i];
-        vector<string> next_matches;
 
+        // Ensure that repeated path separators (i.e '//') are ignored, except
+        // when they appear after a path segment that ends in an alphanumeric
+        // character. Matches bash behavior.
+        if (pattern_segment == "") {
+            if (i > 0 && isalnum(pattern_segments[i - 1].back())) {
+                for (string& current_match : current_matches) {
+                    current_match += "/";
+                }
+            }
+            continue;
+        }
+
+        vector<string> next_matches;
         for (string& current_match : current_matches) {
             vector<string> entries = GetDirectoryEntries(current_match);
 

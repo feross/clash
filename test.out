@@ -1,4 +1,4 @@
-....................FF...F....F.F...F...F..F..F..FF....F......F.FF..F.FF.......
+....................FF...F....F.F...F...F..F..F..FF....F......F.FF....FF.......
 ======================================================================
 FAIL: test_matchString_asterisk (__main__.TestExpand)
 ----------------------------------------------------------------------
@@ -101,7 +101,7 @@ FAIL: test_rebuildPathMap_basics (__main__.TestPipeline)
 Traceback (most recent call last):
   File "test-fixed.py", line 517, in test_rebuildPathMap_basics
     run("PATH=\"`/bin/pwd`/__test/child:`/bin/pwd`/__test\"; a; b"))
-AssertionError: '__test/child/a\n__test/b\n' != '__test/child/a\n-clash: /Users/feross/stanford/CS190/proj3-5/__test/child/b: permission denied\n'
+AssertionError: '__test/child/a\n__test/b\n' != '__test/child/a\n-clash: /Users/feross/stanford/CS190/proj3-5/__test/child/b: No such file or directory\n'
 
 ======================================================================
 FAIL: test_run_ambiguous_input_redirection (__main__.TestPipeline)
@@ -120,14 +120,6 @@ Traceback (most recent call last):
 AssertionError: 'Ambiguous output redirection' not found in '-clash: no file given for output redirection\n'
 
 ======================================================================
-FAIL: test_run_no_such_executable (__main__.TestPipeline)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "test-fixed.py", line 564, in test_run_no_such_executable
-    self.assertIn("No such file or directory", run("__test/bogus foo bar"))
-AssertionError: 'No such file or directory' not found in '-clash: __test/bogus: permission denied\n'
-
-======================================================================
 FAIL: test_run_rebuild_path_cache_path_changed (__main__.TestPipeline)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
@@ -144,6 +136,6 @@ Traceback (most recent call last):
 AssertionError: ' x: command not found\n__test/x' not found in '/Users/feross/Documents/Stanford/CS190/proj3-5\n-clash: Unable to open directory /__test\n'
 
 ----------------------------------------------------------------------
-Ran 79 tests in 2.617s
+Ran 79 tests in 2.703s
 
-FAILED (failures=18)
+FAILED (failures=17)

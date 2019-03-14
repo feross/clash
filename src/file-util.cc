@@ -34,7 +34,7 @@ void FileUtil::DuplicateDescriptor(int new_fd, int old_fd) {
 int FileUtil::OpenFile(string& filePath, int flags, mode_t mode) {
     int fd = open(filePath.c_str(), flags | O_CLOEXEC, mode);
     if (fd == -1) {
-        throw FileException("Could not open \"" + filePath + "\"");
+        throw FileException("No such file or directory: " + filePath);
     }
     return fd;
 }
@@ -128,6 +128,11 @@ vector<string> FileUtil::GetGlobMatches(const string& glob_pattern) {
             }
         }
         current_matches = next_matches;
+    }
+
+    // If pattern matched no files, return the pattern as-is.
+    if (current_matches.size() == 0) {
+        current_matches.push_back(glob_pattern);
     }
 
     return current_matches;

@@ -6,23 +6,9 @@
 using namespace std;
 
 
-// struct JobStringsToInject {
-//     string raw_job_str;
-//     int pos_word;
-//     bool quote_word;
-// };
-
-//TODO: decide if this is best
-// really, this is where the subjob lives - anywhere else would
-// be "living" on a higher level than actually is true internally
-// struct InjectedWord {
-//     string word;
-//     vector<struct JobStringsToInject> subjobs;
-//     void clear() {
-//         subjobs.clear();
-//     }
-// };
-
+/**
+ * Set of structs containing the information necessary to spawn a job
+ */
 struct ParsedCommand {
     ParsedCommand() : redirect_stderr(false) {}
     vector<string> words;
@@ -38,8 +24,7 @@ struct ParsedCommand {
 
 struct ParsedPipeline {
     vector<ParsedCommand> commands;
-    string remaining_job_str; //these must be reparsed after running, huge number
-    // of tests rely on this TODO don't love, but might require to match behavior
+    string remaining_job_str; //after we run, any later pipelines must be reparsed
     void clear() {
         commands.clear();
         remaining_job_str.clear();
@@ -72,11 +57,13 @@ struct ParsedJob {
 class IncompleteParseException : public exception {
     public:
         IncompleteParseException() {}
-        IncompleteParseException(const string& message): message(message) {}
+        IncompleteParseException(const string& message, char ch): message(message), problem_char(ch) {}
         IncompleteParseException(const char* message): message(message) {}
         const char* what() const noexcept { return message.c_str(); }
+        char unmatched_char() const noexcept { return problem_char; }        
     private:
         string message;
+        char problem_char;
 };
 
 class FatalParseException : public exception {

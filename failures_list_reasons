@@ -97,14 +97,15 @@ Traceback (most recent call last):
 AssertionError: 'Unexpected EOF while parsing backslash' not found in '-clash: syntax error: unexpected end of file\n'
 
 
-------------
+
+-------
 
 
+test_rebuildPathMap_basics
 
+'__test/child/a\n__test/b\n' != '__test/child/a\n-clash: /Users/jakemck/Desktop/proj3-5/__test/child/b: permission denied\n
 
-
-
-
+-> spaces from command substituions, should be no spaces
 
 
 

@@ -217,7 +217,16 @@ ParsedPipeline JobParser::ParsePipeline(string& job_str_copy, Environment& env, 
             }
             case '$': {
                 //TODO: In this case DO parse output
-                partial_word.append(ParseVariable(job_str_copy, env));
+                string nonparse_output = ParseVariable(job_str_copy, env);
+                if (nonparse_output == string("ambigious if redirect")) {
+                    if (next_word_redirects_in) {
+                        throw FatalParseException("Ambiguous input redirection");
+                    } else if (next_word_redirects_out) {
+                        throw FatalParseException("Ambiguous output redirection");
+                    }
+                    nonparse_output = string();
+                }
+                partial_word.append(nonparse_output);
                 // partial_word.append(ParseVariable(job_str_copy, env));
                 continue;
             }
@@ -349,6 +358,10 @@ string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO
         job_str_copy = job_str_copy.substr(1); //MODJOBSTR
     } else if (first_var_char =='{') {
         int match_index = job_str_copy.find_first_of("}");
+        if (match_index == string::npos) {
+
+            throw IncompleteParseException("Incomplete job given, no valid closing (})");
+        } 
         variable_name = job_str_copy.substr(1,match_index-1); //skip first
         job_str_copy = job_str_copy.substr(match_index + 1); //MODJOBSTR
     } else if (isalpha(first_var_char)) {
@@ -362,6 +375,12 @@ string JobParser::ParseVariable(string& job_str_copy, Environment& env) { //TODO
     }
     string var_value = env.get_variable(variable_name);
     job_str_copy = var_value + job_str_copy;
+    //Bash for some reason is not OK with redirect to a variable with a space,
+    //even though it's supposed to parse into words... and it's fine with you
+    //giving the same thing as multiple words
+    if (var_value.find(" \t\n") != string::npos) {
+        return string("ambigious if redirect");
+    }
     return string();
 }
 

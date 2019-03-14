@@ -1,3 +1,20 @@
+/**
+ * Shell is the top-level class that represents an instance of the Clash
+ * command line program. It's primary purpose is to process user input and run
+ * it as a series of jobs.
+
+ * In our system, we use the following terminology:
+ *
+ *   "Command"  - An individual progam to be run, along with its arguments and
+ *                optional input and output redirection files.
+ *
+ *   "Pipeline" - A set of one or more "commands", where the input from one
+ *                command flows into the next command.
+ *
+ *   "Job"      - A set of one or more "pipelines" to be run sequentially, one
+ *                after the other.
+ */
+
 #pragma once
 
 #include <fstream>
@@ -12,15 +29,6 @@
 #include "job-parser.h"
 
 using namespace std;
-
-class ShellException : public exception {
-    public:
-        ShellException(const string& message): message(message) {}
-        ShellException(const char* message): message(message) {}
-        const char* what() const noexcept { return message.c_str(); }
-    private:
-        string message;
-};
 
 class Shell {
     public:
@@ -95,4 +103,13 @@ class Shell {
          * List of pending jobs to run when RunJobsAndWait() is called.
          */
         vector<Job> jobs;
+};
+
+class ShellException : public exception {
+    public:
+        ShellException(const string& message): message(message) {}
+        ShellException(const char* message): message(message) {}
+        const char* what() const noexcept { return message.c_str(); }
+    private:
+        string message;
 };

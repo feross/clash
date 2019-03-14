@@ -1,17 +1,7 @@
 /**
  * Job class which represents a job to be run by the terminal. Offers
  * functionality for parsing a user-entered string. Handles jobs that are
- * composed of many pipelines and many individual commands. In our system,
- * use the following terminology:
- *
- *   "Command"  - An individual progam to be run, along with its arguments and
- *                optional input and output redirection files.
- *
- *   "Pipeline" - A set of one or more "commands", where the input from one
- *                command flows into the next command.
- *
- *   "Job"      - A set of one or more "pipelines" to be run sequentially, one
- *                after the other.
+ * composed of many pipelines and many individual commands.
  */
 
 #pragma once

@@ -32,17 +32,21 @@ Shell::Shell(int argc, char* argv[]) {
 bool Shell::ParseString(string& job_str) {
     try {
         if (job_parser.IsPartialJob(job_str, env)) {
-            // Return failure if this An incomplete job is considered a failure, since the job
-            return false; // treat partial jobs as failure
+            // Return failure if this is an incomplete job
+            return false;
         } else {
             ParsedJob parsed_job = job_parser.Parse(job_str, env);
             jobs.push_back(Job(parsed_job, env));
         }
     } catch (exception& e) {
+        // Parsed the complete job, but it was invalid
         printf("-clash: %s\n", e.what());
-        return false; //did parse, into nothing (was invalid)
+        return false;
     }
-    return true; //completely & validly parsed
+
+    // Parsed the complete job. It was valid and successfully added to the list
+    // of pending jobs to run.
+    return true;
 }
 
 bool Shell::ParseFile(const string& file_path) {

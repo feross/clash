@@ -34,15 +34,6 @@
 
 using namespace std;
 
-class ArgumentsException : public exception {
-    public:
-        ArgumentsException(const string& message): message(message) {}
-        ArgumentsException(const char* message): message(message) {}
-        const char* what() const noexcept { return message.c_str(); }
-    private:
-        string message;
-};
-
 class Arguments {
     public:
         /**
@@ -208,4 +199,13 @@ class Arguments {
          * program's help text.
          */
         string intro;
+};
+
+class ArgumentsException : public exception {
+    public:
+        ArgumentsException(const string& message): message(message) {}
+        ArgumentsException(const char* message): message(message) {}
+        const char* what() const noexcept { return message.c_str(); }
+    private:
+        string message;
 };

@@ -15,8 +15,8 @@
  *              printf("Error: %s\n", err.what());
  *              return 1;
  *          }
- *          if (args.get_bool("help")) {
- *              printf("%s\n", args.get_help_text().c_str());
+ *          if (args.GetBool("help")) {
+ *              printf("%s\n", args.GetHelpText().c_str());
  *              return 0;
  *          }
  *      }
@@ -62,7 +62,7 @@ class Arguments {
          * @param name        The full name (e.g. --mybool) of the argument
          * @param description Friendly description of the argument's purpose
          */
-        void RegisterBool(string name, string description);
+        void RegisterBool(const string name, const string description);
 
         /**
          * Register a named integer command line argument with the given name
@@ -74,7 +74,7 @@ class Arguments {
          * @param name        The full name (e.g. --myint) of the argument
          * @param description Friendly description of the argument's purpose
          */
-        void RegisterInt(string name, string description);
+        void RegisterInt(const string name, const string description);
 
         /**
          * Register a named string command line argument with the given name
@@ -86,12 +86,17 @@ class Arguments {
          * @param name        The full name (e.g. --mystring) of the argument
          * @param description Friendly description of the argument's purpose
          */
-        void RegisterString(string name, string description);
+        void RegisterString(const string name, const string description);
 
         /**
-         * TODO
+         * Register a one character command alias with the given name. For
+         * example, the command alias "-h" could be registered as a shortcut for
+         * the full command name "--help".
+         *
+         * @param alias The one-character alias (e.g. 'h')
+         * @param name The full command name that the alias maps to (e.g "help")
          */
-        void RegisterAlias(string alias, string name);
+        void RegisterAlias(const char alias, const string name);
 
         /**
          * Parse the user-provided command line argument string, usually
@@ -116,7 +121,7 @@ class Arguments {
          * @param  argument name
          * @return argument value
          */
-        bool get_bool(string name);
+        bool GetBool(const string name);
 
         /**
          * Return the value of the integer argument with the given name.
@@ -126,7 +131,7 @@ class Arguments {
          * @param  argument name
          * @return argument value
          */
-        int get_int(string name);
+        int GetInt(const string name);
 
         /**
          * Return the value of the string argument with the given name.
@@ -136,7 +141,7 @@ class Arguments {
          * @param  argument name
          * @return argument value
          */
-        const string& get_string(string name);
+        const string& GetString(const string name);
 
         /**
          * Return a vector of the unnamed "extra" arguments included in the
@@ -157,7 +162,7 @@ class Arguments {
          *
          * @return vector of unnamed argument strings
          */
-        const vector<string>& get_unnamed();
+        const vector<string>& GetUnnamed();
 
         /**
          * Returns the program's help text, including the "intro" string
@@ -166,7 +171,7 @@ class Arguments {
          *
          * @return string of command line help text
          */
-        string get_help_text();
+        string GetHelpText();
 
     private:
         /**
@@ -185,7 +190,9 @@ class Arguments {
         map<string, string> string_args;
 
         /**
-         * TODO
+         * Maps from command alias to full command name and vide versa. Used to
+         * translate a command alias like e.g. "-h" to a full command name like
+         * e.g. "--help" and vice versa.
          */
         map<string, string> alias_to_name;
         map<string, string> name_to_alias;

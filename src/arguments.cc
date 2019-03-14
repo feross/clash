@@ -1,22 +1,22 @@
 #include "arguments.h"
 
-void Arguments::RegisterBool(string name, string description) {
+void Arguments::RegisterBool(const string name, const string description) {
     bool_args[name] = false;
     descriptions[name] = description;
 }
 
-void Arguments::RegisterInt(string name, string description) {
+void Arguments::RegisterInt(const string name, const string description) {
     int_args[name] = -1;
     descriptions[name] = description;
 }
 
-void Arguments::RegisterString(string name, string description) {
+void Arguments::RegisterString(const string name, const string description) {
     string_args[name] = "";
     descriptions[name] = description;
 }
 
-void Arguments::RegisterAlias(string alias, string name) {
-    alias_to_name[alias] = name;
+void Arguments::RegisterAlias(const char alias, const string name) {
+    alias_to_name[string(1, alias)] = name;
     name_to_alias[name] = alias;
 }
 
@@ -68,32 +68,32 @@ void Arguments::Parse(int argc, char* argv[]) {
     }
 }
 
-bool Arguments::get_bool(string name) {
+bool Arguments::GetBool(const string name) {
     if (!bool_args.count(name)) {
         throw ArgumentsException("Missing argument " + name);
     }
     return bool_args[name];
 }
 
-int Arguments::get_int(string name) {
+int Arguments::GetInt(const string name) {
     if (!int_args.count(name)) {
         throw ArgumentsException("Missing argument " + name);
     }
     return int_args[name];
 }
 
-const string& Arguments::get_string(string name) {
+const string& Arguments::GetString(const string name) {
     if (!string_args.count(name)) {
         throw ArgumentsException("Missing argument " + name);
     }
     return string_args[name];
 }
 
-const vector<string>& Arguments::get_unnamed() {
+const vector<string>& Arguments::GetUnnamed() {
     return unnamed_args;
 }
 
-string Arguments::get_help_text() {
+string Arguments::GetHelpText() {
     string result;
 
     if (intro.size()) result += intro + "\n";

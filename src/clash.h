@@ -36,4 +36,7 @@ Examples:
 
     Read and excute commands from a string.
         ./clash -c "echo hello world"
+
+    Read commands from stdin.
+        echo "echo hello from stdin" | ./clash
 )";

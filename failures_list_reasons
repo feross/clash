@@ -1,0 +1,117 @@
+Failures list (reasons, to fix):
+
+- glob expansion 
+
+
+rebuildPathMap
+
+parse_commands_no_word
+
+
+
+First 3:
+Glob doesn't handle escaped, and we don't track escaped 
+
+----
+
+'__test/script a b | 3 | a b c\n' != '__test/script a b | 3 |  a b c\n'
+-> $* 
+-> easy fix when building %*, probably
+
+/bin/echo $# '|' $0 $1 '|' $*\n
+-> same as above
+
+----
+
+
+"/bin/echo 'foo\nbar'\n/bin/echo second command"
+we don't run second command b/c command separator \n that we ignore
+
+-> maybe fix by treating the file s.t. instead of being one job,
+we split on newlines & treat like repl commands
+
+
+
+"/bin/echo command output\nexit 32\n    \n"
+
+same as above, doesn't run & should b/c \n is command separator
+
+---
+
+
+'Word 1: .abc\nWord 2: def\nWord 3: x\nWord 4: y.\n' != 'Word 1: .abc def\tx\ny.\n
+
+not splitting on whitespace inside 
+
+
+similarly:
+run("x='*.c'; /bin/echo \"__test/*.c\""))
+
+I return l
+
+It's because I return a string, rather than rewinding the job_copy_str
+
+
+---------
+Traceback (most recent call last):
+  File "test-fixed.py", line 355, in test_doSubs_commands
+    self.assertEqual("abc\n", run("x=abc; /bin/echo `/bin/echo $x`"))
+AssertionError: 'abc\n' != '-clash: basic_string\n'
+--------
+
+
+
+
+
+# Feross passes this, I don't for some reason
+test_rebuildPathMap_default
+
+
+
+--------
+
+run("x='~ ~'; /bin/echo ~ $x \"~\" '~'"))
+AssertionError: '/Users/jakemck ~ ~ ~ ~\n' != '/Users/jakemck /Users/jakemck /Users/jakemck ~ ~\n'
+
+
+parsing variables as tildes
+
+
+-----------
+
+Say what we're looking for when we're incomplete
+
+FAIL: test_eval_errors (__main__.TestParser)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 331, in test_eval_errors
+    run("/bin/echo 'a b c"))
+AssertionError: "unexpected EOF while looking for matching `''" not found in '-clash: syntax error: unexpected end of file\n'
+
+======================================================================
+FAIL: test_parse_backslashes (__main__.TestParser)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 436, in test_parse_backslashes
+    run("/bin/echo \\"))
+AssertionError: 'Unexpected EOF while parsing backslash' not found in '-clash: syntax error: unexpected end of file\n'
+
+
+
+-------
+
+
+test_rebuildPathMap_basics
+
+'__test/child/a\n__test/b\n' != '__test/child/a\n-clash: /Users/jakemck/Desktop/proj3-5/__test/child/b: permission denied\n
+
+-> spaces from command substituions, should be no spaces
+
+
+
+
+
+
+
+
+

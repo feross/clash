@@ -1,0 +1,141 @@
+....................FF...F....F.F...F...F..F..F..FF....F......F.FF....FF.......
+======================================================================
+FAIL: test_matchString_asterisk (__main__.TestExpand)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 221, in test_matchString_asterisk
+    self.assertEqual("__tes?/x*z\n", run('/bin/echo __tes?/x\*z'))
+AssertionError: '__tes?/x*z\n' != '__test/xyz\n'
+
+======================================================================
+FAIL: test_matchString_brackets (__main__.TestExpand)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 228, in test_matchString_brackets
+    self.assertEqual("__tes?/x[y]z\n", run('/bin/echo __tes?/x\[y]z'))
+AssertionError: '__tes?/x[y]z\n' != '__test/xyz\n'
+
+======================================================================
+FAIL: test_matchString_question_mark (__main__.TestExpand)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 212, in test_matchString_question_mark
+    self.assertEqual("__tes?/x?z\n", run('/bin/echo __tes?/x\?z'))
+AssertionError: '__tes?/x?z\n' != '__test/xyz\n'
+
+======================================================================
+FAIL: test_main_script_file_basics (__main__.TestMain)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 290, in test_main_script_file_basics
+    runWithArgs("__test/script"))
+AssertionError: 'foo\nbar\nsecond command\n' != 'foo\nbar /bin/echo second command\n'
+
+======================================================================
+FAIL: test_main_script_file_exit_status (__main__.TestMain)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 301, in test_main_script_file_exit_status
+    self.assertEqual("command output\n", runWithArgs("__test/script"))
+AssertionError: 'command output\n' != 'command output exit 32\n'
+
+======================================================================
+FAIL: test_doSubs_commands (__main__.TestParser)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 355, in test_doSubs_commands
+    self.assertEqual("abc\n", run("x=abc; /bin/echo `/bin/echo $x`"))
+AssertionError: 'abc\n' != '-clash: basic_string\n'
+
+======================================================================
+FAIL: test_doSubs_tildes_first (__main__.TestParser)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 341, in test_doSubs_tildes_first
+    run("x='~ ~'; /bin/echo ~ $x \"~\" '~'"))
+AssertionError: '/Users/feross ~ ~ ~ ~\n' != '/Users/feross /Users/feross /Users/feross ~ ~\n'
+
+======================================================================
+FAIL: test_eval_errors (__main__.TestParser)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 331, in test_eval_errors
+    run("/bin/echo 'a b c"))
+AssertionError: "unexpected EOF while looking for matching `''" not found in '-clash: syntax error: unexpected end of file\n'
+
+======================================================================
+FAIL: test_parse_backslashes (__main__.TestParser)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 436, in test_parse_backslashes
+    run("/bin/echo \\"))
+AssertionError: 'Unexpected EOF while parsing backslash' not found in '-clash: syntax error: unexpected end of file\n'
+
+======================================================================
+FAIL: test_parse_commands_basics (__main__.TestParser)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 419, in test_parse_commands_basics
+    run("x='$y'; y=abc; /bin/echo `./words.py $x`"))
+AssertionError: 'Word 1: $y\n' != '-clash: basic_string\n'
+
+======================================================================
+FAIL: test_parse_commands_errors (__main__.TestParser)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 430, in test_parse_commands_errors
+    run("/bin/echo `foo bar"))
+AssertionError: "Unexpected EOF while looking for matching ``'" not found in '-clash: syntax error: unexpected end of file\n'
+
+======================================================================
+FAIL: test_parse_variables (__main__.TestParser)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 407, in test_parse_variables
+    run("/bin/echo ${xxx"))
+AssertionError: "unexpected EOF while looking for `}'" not found in '-clash: syntax error: unexpected end of file\n'
+
+======================================================================
+FAIL: test_rebuildPathMap_basics (__main__.TestPipeline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 517, in test_rebuildPathMap_basics
+    run("PATH=\"`/bin/pwd`/__test/child:`/bin/pwd`/__test\"; a; b"))
+AssertionError: '__test/child/a\n__test/b\n' != '__test/child/a\n-clash: /Users/feross/stanford/CS190/proj3-5/__test/child/b: No such file or directory\n'
+
+======================================================================
+FAIL: test_run_ambiguous_input_redirection (__main__.TestPipeline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 530, in test_run_ambiguous_input_redirection
+    run("x='a b'; /bin/cat <$x"))
+AssertionError: 'Ambiguous input redirection' not found in '-clash: no file given for input redirection\n'
+
+======================================================================
+FAIL: test_run_ambiguous_output_redirection (__main__.TestPipeline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 539, in test_run_ambiguous_output_redirection
+    run("x='a b'; /bin/echo foo bar >$x"))
+AssertionError: 'Ambiguous output redirection' not found in '-clash: no file given for output redirection\n'
+
+======================================================================
+FAIL: test_run_rebuild_path_cache_path_changed (__main__.TestPipeline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 560, in test_run_rebuild_path_cache_path_changed
+    run("x; PATH=\"/bin:`pwd`/__test\"; x"))
+AssertionError: ' x: command not found\n__test/x' not found in '-clash: x: command not found\n/Users/feross/Documents/Stanford/CS190/proj3-5\n/Users/feross/Documents/Stanford/CS190/proj3-5\n/Users/feross/Documents/Stanford/CS190/proj3-5\n-clash: Unable to open directory /__test\n'
+
+======================================================================
+FAIL: test_run_rebuild_path_cache_to_discover_new_file (__main__.TestPipeline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test-fixed.py", line 553, in test_run_rebuild_path_cache_to_discover_new_file
+    run("PATH=\"/bin:`pwd`/__test\"; x; chmod +x __test/x; x"))
+AssertionError: ' x: command not found\n__test/x' not found in '/Users/feross/Documents/Stanford/CS190/proj3-5\n-clash: Unable to open directory /__test\n'
+
+----------------------------------------------------------------------
+Ran 79 tests in 2.854s
+
+FAILED (failures=17)

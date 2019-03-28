@@ -14,7 +14,7 @@ import unittest
 # The location of the shell to be tested. You can change this to
 # /bin/bash to see if Bash passes this test suite.
 shell = "./clash"
-#shell = "/bin/bash"
+# shell = "/bin/bash"
 
 # This variable will hold the exit status of the most recent command
 # executed by "run"
@@ -170,11 +170,11 @@ class TestExpand(unittest.TestCase):
 
     def test_expandTilde(self):
         self.assertEqual("/home/ouster\n",
-                run("PATH=/home/ouster; /bin/echo ~\n"))
-        self.assertEqual("/home/ouster/xyz\n", run("/bin/echo ~/xyz\n"))
-        self.assertEqual("/home/ouster\n", run("/bin/echo ~ouster\n"))
-        self.assertEqual("/home/ouster/xyz\n", run("/bin/echo ~ouster/xyz\n"))
-        self.assertEqual("~__bogus__/xyz\n", run("/bin/echo ~__bogus__/xyz\n"))
+                run("HOME=/home/ouster; /bin/echo ~\n"))
+        self.assertEqual("/home/ouster/xyz\n", run("HOME=/home/ouster; /bin/echo ~/xyz\n"))
+        self.assertEqual("/var/root\n", run("/bin/echo ~root\n"))
+        self.assertEqual("/var/root/xyz\n", run("/bin/echo ~root/xyz\n"))
+        self.assertEqual("~__bogus__/xyz\n", run("HOME=/home/ouster; /bin/echo ~__bogus__/xyz\n"))
 
     def test_matchFiles_bad_directory(self):
         self.assertEqual("__test/bogus/*\n", run('/bin/echo __test/bogus/*'))
@@ -268,7 +268,7 @@ class TestMain(unittest.TestCase):
         writeFile("__test/script", "/bin/echo $0 $1 $2 '|' $# '|' $*")
         self.assertEqual("__test/script a b | 3 | a b c\n",
                 runWithArgs("__test/script", "a", "b", "c"))
-        self.assertEqual("0 | |\n",
+        self.assertEqual("0 | " + shell + " |\n",
                 run("/bin/echo $# '|' $0 $1 '|' $*"))
 
     def test_main_c_option_basics(self):
@@ -570,7 +570,7 @@ class TestPipeline(unittest.TestCase):
 
     def test_run_set_status_variable(self):
         os.makedirs("__test")
-        self.assertEqual("0\n", run("/bin/true; /bin/echo $?"))
+        self.assertEqual("0\n", run("/usr/bin/true; /bin/echo $?"))
         self.assertEqual("44\n", run("/bin/bash -c \"exit 44\"; /bin/echo $?"))
 
 class TestVariables(unittest.TestCase):
